@@ -1,74 +1,74 @@
-<x-app-layout>
-  <div class="page" style="max-width:720px;">
-    <div class="page-header">
-      <div class="page-title">Datenschutzerklärung</div>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datenschutzerklärung - PageScan</title>
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
+  @vite(['resources/css/app.css'])
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand">PageScan</a>
+  </nav>
+
+  <div class="page" style="max-width:680px;">
+    <div style="margin-bottom:32px;">
+      <a href="/" style="font-size:13px; color:var(--text-3); text-decoration:none;">← Zurück</a>
     </div>
 
-    <div class="card" style="padding:32px; line-height:1.7; font-size:14px; color:var(--text-2);">
+    <div class="page-title" style="margin-bottom:4px;">Datenschutzerklärung</div>
+    <div class="page-subtitle" style="margin-bottom:32px;">Gemäß DSGVO · Stand: {{ date('F Y') }}</div>
 
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">1. Verantwortlicher</h2>
-      <p style="margin:0 0 24px;">
-        Verantwortlich für die Datenverarbeitung auf dieser Website ist:<br><br>
-        <strong style="color:var(--text-1);">[Vor- und Nachname / Unternehmensname]</strong><br>
-        [Straße und Hausnummer]<br>
-        [PLZ] [Stadt]<br>
-        E-Mail: [Ihre E-Mail-Adresse]
-      </p>
+    <p style="font-size:14px; color:var(--text-2); line-height:1.7; margin-bottom:24px;">
+      Wir nehmen den Schutz deiner persönlichen Daten ernst. Diese Erklärung informiert dich darüber, welche Daten wir erheben, wie wir sie verwenden und welche Rechte du hast.
+    </p>
 
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">2. Welche Daten wir erheben</h2>
-      <p style="margin:0 0 8px;">Bei der Nutzung von PageScan werden folgende personenbezogene Daten verarbeitet:</p>
-      <ul style="margin:0 0 24px; padding-left:20px;">
-        <li><strong>Zugangsdaten:</strong> E-Mail-Adresse und Passwort (verschlüsselt gespeichert) bei der Registrierung</li>
-        <li><strong>Nutzungsdaten:</strong> Suchanfragen (Branche, Stadt), gespeicherte Leads und Notizen</li>
-        <li><strong>Technische Daten:</strong> IP-Adresse, Browser-Typ, Zugriffszeiten (Server-Logs)</li>
-      </ul>
+    @php
+    $sections = [
+      ['title' => '1. Verantwortlicher', 'content' => '
+        <p>[Vor- und Nachname / Firmenname]<br>[Straße und Hausnummer]<br>[PLZ Ort]<br>E-Mail: <a href="mailto:[kontakt@beispiel.de]" style="color:var(--text-1);">[kontakt@beispiel.de]</a></p>
+      '],
+      ['title' => '2. Nutzerkonto & Registrierung', 'content' => '
+        <p>Zur Nutzung von PageScan ist eine Registrierung erforderlich. Wir erheben Name, E-Mail-Adresse und Passwort (verschlüsselt). Scan-Ergebnisse, Leads und Suchanfragen werden für die Dauer des Vertragsverhältnisses gespeichert.</p>
+        <p style="margin-top:8px;">Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.</p>
+      '],
+      ['title' => '3. Server-Logfiles', 'content' => '
+        <p>Beim Aufruf unserer Website speichern wir automatisch IP-Adresse (anonymisiert), Datum/Uhrzeit, aufgerufene URL sowie Browser- und Betriebssystem-Info. Logs werden nach 7 Tagen gelöscht.</p>
+        <p style="margin-top:8px;">Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+      '],
+      ['title' => '4. Cookies', 'content' => '
+        <p>Wir setzen ausschließlich technisch notwendige Cookies ein: Session-Cookie (Anmeldung), CSRF-Token (Sicherheit) und Cookie-Zustimmung. Keine Tracking- oder Werbe-Cookies, kein Analytics.</p>
+        <p style="margin-top:8px;">Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+      '],
+      ['title' => '5. Zahlungsabwicklung – Stripe', 'content' => '
+        <p>Zahlungen werden über Stripe Payments Europe, Ltd. (Dublin, Irland) abgewickelt. Zahlungsdaten werden direkt an Stripe übermittelt — wir speichern keine Kreditkartendaten. Stripe gibt uns lediglich den Abo-Status zurück.</p>
+        <p style="margin-top:8px;">Datenschutzrichtlinie: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener" style="color:var(--text-1);">stripe.com/de/privacy</a> · Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.</p>
+      '],
+      ['title' => '6. Google Places API', 'content' => '
+        <p>Die Suchfunktion nutzt die Google Places API (Google Ireland Ltd., Dublin). Suchanfragen (Branche und Stadt) werden an Google-Server übermittelt.</p>
+        <p style="margin-top:8px;">Datenschutzrichtlinie: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--text-1);">policies.google.com/privacy</a> · Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.</p>
+      '],
+      ['title' => '7. Schriftarten – Bunny Fonts', 'content' => '
+        <p>Wir laden Schriftarten von Bunny Fonts (BunnyWay d.o.o., Ljubljana). Der Anbieter protokolliert keine IP-Adressen — es werden keine personenbezogenen Daten weitergegeben.</p>
+      '],
+      ['title' => '8. Deine Rechte', 'content' => '
+        <p>Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21 DSGVO). Dein Konto kannst du unter <em>Profil → Konto löschen</em> selbst entfernen. Für alle weiteren Anfragen: <a href="mailto:[kontakt@beispiel.de]" style="color:var(--text-1);">[kontakt@beispiel.de]</a></p>
+      '],
+      ['title' => '9. Datensicherheit', 'content' => '
+        <p>Alle Übertragungen erfolgen verschlüsselt via HTTPS/TLS. Passwörter werden ausschließlich gehasht (bcrypt) gespeichert. Zugriff auf Produktionsdaten ist auf autorisiertes Personal beschränkt.</p>
+      '],
+    ];
+    @endphp
 
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">3. Zweck der Datenverarbeitung</h2>
-      <ul style="margin:0 0 24px; padding-left:20px;">
-        <li>Bereitstellung und Betrieb der PageScan-Anwendung</li>
-        <li>Authentifizierung und Sicherheit des Nutzerkontos</li>
-        <li>Speicherung von Leads und Notizen zur eigenen Nutzung</li>
-      </ul>
-
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">4. Rechtsgrundlage</h2>
-      <p style="margin:0 0 24px;">
-        Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) sowie Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen am sicheren Betrieb der Anwendung).
-      </p>
-
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">5. Drittdienste</h2>
-      <p style="margin:0 0 8px;">PageScan nutzt folgende externe Dienste:</p>
-      <ul style="margin:0 0 24px; padding-left:20px;">
-        <li><strong>Google Places API (Google LLC):</strong> Suche nach Unternehmen. Google kann dabei Daten in die USA übermitteln. Datenschutzrichtlinie: <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--text-2);">policies.google.com/privacy</a></li>
-        <li><strong>Thum.io:</strong> Generierung von Website-Screenshots. Dabei wird die jeweilige Website-URL an den Dienst übermittelt.</li>
-      </ul>
-
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">6. Speicherdauer</h2>
-      <p style="margin:0 0 24px;">
-        Ihre Daten werden so lange gespeichert, wie Ihr Konto aktiv ist. Nach Löschung des Kontos werden alle personenbezogenen Daten innerhalb von 30 Tagen entfernt.
-      </p>
-
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">7. Ihre Rechte</h2>
-      <p style="margin:0 0 8px;">Sie haben gemäß DSGVO folgende Rechte:</p>
-      <ul style="margin:0 0 24px; padding-left:20px;">
-        <li><strong>Auskunft</strong> (Art. 15 DSGVO): Welche Daten wir über Sie gespeichert haben</li>
-        <li><strong>Berichtigung</strong> (Art. 16 DSGVO): Korrektur unrichtiger Daten</li>
-        <li><strong>Löschung</strong> (Art. 17 DSGVO): Löschung Ihrer Daten</li>
-        <li><strong>Einschränkung</strong> (Art. 18 DSGVO): Einschränkung der Verarbeitung</li>
-        <li><strong>Widerspruch</strong> (Art. 21 DSGVO): Widerspruch gegen die Verarbeitung</li>
-        <li><strong>Beschwerde:</strong> Beschwerde bei der zuständigen Datenschutzbehörde</li>
-      </ul>
-      <p style="margin:0 0 24px;">
-        Zur Ausübung Ihrer Rechte wenden Sie sich an: <a href="mailto:[Ihre E-Mail-Adresse]" style="color:var(--text-2);">[Ihre E-Mail-Adresse]</a>
-      </p>
-
-      <h2 style="font-size:15px; font-weight:600; color:var(--text-1); margin:0 0 12px;">8. Cookies und Sessions</h2>
-      <p style="margin:0 0 24px;">
-        PageScan verwendet technisch notwendige Session-Cookies zur Authentifizierung. Diese Cookies sind für den Betrieb der Anwendung erforderlich und können nicht deaktiviert werden. Es werden keine Tracking- oder Werbe-Cookies eingesetzt.
-      </p>
-
-      <p style="margin:0; font-size:12px; color:var(--text-3);">
-        Stand: {{ now()->format('F Y') }}
-      </p>
+    @foreach($sections as $s)
+    <div class="card" style="padding:24px 28px; margin-bottom:12px;">
+      <div style="font-size:12px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;">{{ $s['title'] }}</div>
+      <div style="font-size:14px; color:var(--text-2); line-height:1.7;">{!! $s['content'] !!}</div>
     </div>
+    @endforeach
+
   </div>
-</x-app-layout>
+</body>
+</html>

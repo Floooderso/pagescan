@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ScanWebsiteJob;
 use App\Models\Company;
 use App\Models\Scan;
 use App\Services\WebsiteScanner;
@@ -55,10 +56,10 @@ class CompanyController extends Controller
             return back()->with('error', 'Keine Website-URL vorhanden.');
         }
 
-        $result = (new WebsiteScanner)->scan($company->website_url);
-        Scan::create(array_merge(['company_id' => $company->id], $result));
+        Scan::create(['company_id' => $company->id, 'status' => 'pending']);
+        ScanWebsiteJob::dispatch($company->id, auth()->id());
 
-        return back()->with('success', 'Scan erfolgreich durchgeführt.');
+        return back()->with('success', 'Scan gestartet. Das Ergebnis erscheint in Kürze.');
     }
 
     public function exportCsv(Request $request)

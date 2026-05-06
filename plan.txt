@@ -1,0 +1,78 @@
+Stufe 1: Ohne das geht kein Verkauf (Launch-Blocker)
+1. Stripe Billing + Pläne
+
+Aktuell: komplett fehlt, kein einziger billing-relevanter Code
+Braucht: laravel/cashier Package, Subscription-Model, Webhook-Handler
+3 Pläne: Starter (€29), Agency (€79), Pro (€149)
+Geschätzter Aufwand: 3–4 Tage
+2. Scan-Quota pro Plan
+
+Aktuell: User kann unbegrenzt scannen, kein Limit irgendwo
+Braucht: scans_used, scans_limit auf User-Ebene, Middleware die blockiert wenn Limit erreicht
+Geschätzter Aufwand: 1 Tag
+3. Echter E-Mail-Versand
+
+Aktuell: MAIL_MAILER=log — keine einzige E-Mail geht raus
+Braucht: SMTP konfigurieren (Mailgun/Postmark), Welcome-Mail, Password-Reset funktioniert schon (nur nie zugestellt)
+Geschätzter Aufwand: 0,5 Tage
+4. Async Scanning (Queue Worker)
+
+Aktuell: Scans laufen synchron — bei 20 Unternehmen blockiert der Request 30–60 Sekunden
+Braucht: ScanWebsiteJob, Redis Queue, Status-Polling im Frontend
+Ohne das bricht alles ab sobald mehr als ~5 Unternehmen gleichzeitig gescannt werden
+Geschätzter Aufwand: 2–3 Tage
+Stufe 2: Ohne das verlierst du Kunden (Retention-Blocker)
+5. Landing Page (welcome.blade.php)
+
+Aktuell vorhanden aber schaue ich mir gleich an — wahrscheinlich Laravel-Default
+Braucht: echte Marketing-Page mit Value Prop, Pricing, CTA
+Geschätzter Aufwand: 2–3 Tage
+6. Saved Search Auto-Run (Laravel Scheduler)
+
+Aktuell: Saved Searches existieren im Code, aber nur manuell ausführbar
+Braucht: php artisan schedule:run + täglicher Job der neue Leads findet und E-Mail schickt
+Das ist das Killer-Feature für Retention — Nutzer kriegen täglich neue Leads ohne sich einzuloggen
+Geschätzter Aufwand: 1–2 Tage
+7. Lead-Benachrichtigungen per E-Mail
+
+Aktuell: keine einzige Notification-Klasse
+Braucht: "X neue Leads gefunden" Mail, ggf. "Lead zugewiesen" für Team-Feature
+Geschätzter Aufwand: 1 Tag
+8. Onboarding Flow
+
+Aktuell: nach Register landet man direkt im leeren Dashboard
+Braucht: API-Key eingeben Schritt, erste Suche machen, erster Lead speichern
+Geschätzter Aufwand: 1–2 Tage
+Stufe 3: Wichtig für Vertrauen (DACH-Markt)
+9. DSGVO-konformes Cookie-Banner
+
+Aktuell: Datenschutz-Page existiert (legal/datenschutz.blade.php), aber kein Banner
+Pflicht in Deutschland
+Geschätzter Aufwand: 0,5 Tage
+10. Trial-Flow
+
+Aktuell: Registrierung erstellt direkt einen User ohne Plan
+Braucht: 14-Tage-Trial, danach Paywall, Upgrade-Prompt
+Geschätzter Aufwand: 1 Tag (wenn Stripe schon steht)
+11. Produktions-Datenbank
+
+Aktuell: SQLite (database/database.sqlite)
+Braucht: MySQL oder PostgreSQL für Production-Deployment
+Migration ist 1 Befehls-Änderung + Hosting-Setup
+Geschätzter Aufwand: 0,5 Tage
+Stufe 4: Nice-to-have (nach Launch)
+Feature	Warum	Aufwand
+Outreach-Templates im Lead	Nutzer wissen nicht was sie schreiben sollen	1 Tag
+CSV-Import von eigenen Leads	Manche haben schon eine Liste	1 Tag
+2FA	Enterprise-Kunden erwarten das	1 Tag
+API-Keys für externe Tools (Zapier etc.)	Agency-Kunden wollen Zapier-Integration	2 Tage
+Rescan-Scheduling (monatlich)	Websites ändern sich, alte Leads neu bewerten	1 Tag
+Zusammenfassung
+Stufe	Aufwand	Ergebnis
+Stufe 1 (Launch-Blocker)	~8–11 Tage	Kunden können zahlen
+Stufe 2 (Retention)	~5–8 Tage	Kunden bleiben
+Stufe 3 (Vertrauen)	~2–3 Tage	Kunden vertrauen
+Gesamt	~15–22 Tage	Verkaufbares SaaS
+Wo anfangen? Stripe + Quota → Async Scanning → E-Mail-Versand. Sobald jemand zahlen kann und der Scanner nicht abstürzt, ist alles andere iterierbar.
+
+Soll ich mit einem dieser Punkte anfangen und direkt implementieren?

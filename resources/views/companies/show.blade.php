@@ -19,9 +19,7 @@
     </div>
 
     @if(session('success'))
-    <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px;">
-      {{ session('success') }}
-    </div>
+      <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     <!-- Obere Reihe: Bild + Stammdaten -->

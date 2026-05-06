@@ -8,15 +8,11 @@
     </div>
 
     @if(session('success'))
-      <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
-        {{ session('success') }}
-      </div>
+      <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     @if($errors->has('sum'))
-      <div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
-        {{ $errors->first('sum') }}
-      </div>
+      <div class="alert alert-error">{{ $errors->first('sum') }}</div>
     @endif
 
     <div
@@ -84,11 +80,14 @@
         </div>
 
         <!-- Live-Summe -->
-        <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:8px; margin-bottom:20px;" :style="sum === 100 ? 'background:#f0fdf4; border:1px solid #bbf7d0;' : 'background:#fef2f2; border:1px solid #fecaca;'">
-          <span style="font-size:13px; font-weight:500;" :style="sum === 100 ? 'color:#15803d;' : 'color:#dc2626;'">
+        <div
+          style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:8px; margin-bottom:20px;"
+          :class="sum === 100 ? 'alert alert-success' : 'alert alert-error'"
+        >
+          <span style="font-size:13px; font-weight:500;">
             Summe: <span x-text="sum"></span> / 100
           </span>
-          <span style="font-size:12px;" :style="sum === 100 ? 'color:#15803d;' : 'color:#dc2626;'" x-text="sum === 100 ? '✓ Korrekt' : '✗ Muss genau 100 ergeben'"></span>
+          <span style="font-size:12px;" x-text="sum === 100 ? '✓ Korrekt' : '✗ Muss genau 100 ergeben'"></span>
         </div>
 
         <button type="submit" class="btn btn-primary" :disabled="sum !== 100" :class="sum !== 100 ? 'opacity-50 cursor-not-allowed' : ''">

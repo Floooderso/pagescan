@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Company extends Model
 {
     protected $fillable = [
-        'place_id', 'name', 'branche', 'stadt', 'plz', 'telefon', 'email',
+        'place_id', 'name', 'branche', 'stadt', 'adresse', 'plz', 'telefon', 'email',
         'website_url', 'has_website', 'screenshot_path', 'rating', 'bewertungen',
     ];
 

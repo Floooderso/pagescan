@@ -1,9 +1,14 @@
 import './bootstrap'
+import Alpine from 'alpinejs'
 import { createApp } from 'vue'
 import axios from 'axios'
 import CompanySearch from './components/CompanySearch.vue'
 import CompanyList   from './components/CompanyList.vue'
 import LeadsManager  from './components/LeadsManager.vue'
+
+// Alpine muss vor Vue-Mounts initialisiert werden
+window.Alpine = Alpine
+Alpine.start()
 
 window.axios = axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'

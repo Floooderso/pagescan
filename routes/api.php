@@ -8,11 +8,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::post('/search',         [SearchController::class,     'search'])->middleware('throttle:30,1');
+    Route::post('/search',         [SearchController::class,     'search'])->middleware(['throttle:30,1', 'scan.quota']);
     Route::get('/cities',          [SearchController::class,     'cities']);
-    Route::post('/scan-url',       [CompanyApiController::class, 'scanUrl'])->middleware('throttle:60,1');
+    Route::post('/scan-url',       [CompanyApiController::class, 'scanUrl'])->middleware(['throttle:60,1', 'scan.quota']);
     Route::get('/companies',       [CompanyApiController::class, 'index']);
     Route::get('/filter-options',  [CompanyApiController::class, 'filterOptions']);
+    Route::get('/scans/status',    [CompanyApiController::class, 'scanStatus']);
+    Route::post('/companies/{company}/scan', [CompanyApiController::class, 'dispatchScan'])->middleware('scan.quota');
     Route::get('/leads',     [LeadController::class,       'apiIndex']);
     Route::post('/leads',    [LeadController::class,       'store']);
     Route::put('/leads/{lead}',    [LeadController::class, 'update']);

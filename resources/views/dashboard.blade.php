@@ -8,6 +8,28 @@
       <a href="/search" class="btn btn-primary">Neue Suche</a>
     </div>
 
+    <!-- Quota-Anzeige -->
+    <div class="card" style="padding:16px 20px; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+        <div style="font-size:13px; font-weight:500;">Scan-Kontingent</div>
+        <div style="font-size:12px; color:var(--text-3);">
+          {{ $scanUsed }} / {{ $scanLimit === 0 ? '∞' : number_format($scanLimit) }} Scans verbraucht
+        </div>
+      </div>
+      <div style="background:var(--bg); border-radius:4px; height:6px; overflow:hidden;">
+        <div style="height:6px; border-radius:4px; transition:width 0.3s;
+          background: {{ $scanPercent >= 90 ? '#dc2626' : ($scanPercent >= 70 ? '#ca8a04' : 'var(--text-1)') }};
+          width: {{ $scanPercent }}%;">
+        </div>
+      </div>
+      @if($scanPercent >= 90)
+        <div style="font-size:11px; color:#dc2626; margin-top:6px;">
+          Limit fast erreicht —
+          <a href="{{ route('subscription.plans') }}" style="color:#dc2626; font-weight:600;">Jetzt upgraden</a>
+        </div>
+      @endif
+    </div>
+
     @if($stats['gesamt'] === 0)
     <!-- Leerzustand -->
     <div class="card" style="padding:48px; text-align:center; margin-bottom:24px;">

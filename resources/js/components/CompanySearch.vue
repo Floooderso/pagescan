@@ -49,22 +49,19 @@
         </button>
       </div>
 
-      <!-- Fortschritt -->
+      <!-- Fortschritt während der Suche -->
       <div v-if="searching" style="margin-top:16px;">
         <div style="display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-2);">
           <div class="spinner"></div>
           <span>{{ statusText }}</span>
         </div>
-        <div v-if="progress.total > 0" style="margin-top:10px;">
-          <div style="background:var(--bg); border-radius:4px; height:4px; overflow:hidden;">
-            <div
-              style="background:var(--text-1); height:4px; border-radius:4px; transition:width 0.3s;"
-              :style="{ width: (progress.done / progress.total * 100) + '%' }"
-            ></div>
-          </div>
-          <div style="font-size:11px; color:var(--text-3); margin-top:4px;">
-            {{ progress.done }} / {{ progress.total }} gescannt
-          </div>
+      </div>
+
+      <!-- Scan-Fortschritt nach der Suche -->
+      <div v-else-if="pollingActive && pendingScanCount > 0" style="margin-top:12px;">
+        <div style="display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-2);">
+          <div class="spinner"></div>
+          <span>{{ pendingScanCount }} Website{{ pendingScanCount !== 1 ? 's werden' : ' wird' }} gescannt...</span>
         </div>
       </div>
     </div>
@@ -84,7 +81,7 @@
         <span style="color:var(--text-3);">Ø Score: </span><strong>{{ avgScore }}/100</strong>
       </div>
 
-      <!-- Filter-Buttons + Batch-Scan -->
+      <!-- Filter-Buttons -->
       <div style="display:flex; gap:6px; margin-left:auto; flex-wrap:wrap; align-items:center;">
         <button
           v-for="f in filters"
@@ -95,35 +92,6 @@
         >
           {{ f.label }}
         </button>
-        <button
-          v-if="!batchRunning"
-          class="btn btn-sm"
-          style="background:var(--bg); border:1px solid var(--border-md);"
-          @click="startBatchScan"
-        >
-          Alle {{ companies.filter(c => c.has_website && c.scan_status !== 'done').length }} scannen
-        </button>
-        <button
-          v-else
-          class="btn btn-sm btn-danger"
-          @click="batchCancelled = true"
-        >
-          Abbrechen
-        </button>
-      </div>
-    </div>
-
-    <!-- Batch-Fortschritt -->
-    <div v-if="batchRunning" class="card" style="padding:14px 20px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-2); margin-bottom:8px;">
-        <div class="spinner"></div>
-        <span>Batch-Scan: {{ batchProgress }} / {{ batchTotal }} gescannt</span>
-      </div>
-      <div style="background:var(--bg); border-radius:4px; height:6px; overflow:hidden;">
-        <div
-          style="background:var(--text-1); height:6px; border-radius:4px; transition:width 0.3s;"
-          :style="{ width: batchTotal > 0 ? (batchProgress / batchTotal * 100) + '%' : '0%' }"
-        ></div>
       </div>
     </div>
 
@@ -172,7 +140,7 @@
               <span v-else class="badge-red">Keine Website</span>
             </td>
             <td>
-              <div v-if="c.scan_status === 'scanning'" style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-3);">
+              <div v-if="isScanRunning(c)" style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-3);">
                 <div class="spinner spinner-sm"></div> Scannt...
               </div>
               <span v-else-if="c.scan_status === 'done'">
@@ -195,10 +163,10 @@
                 <button
                   v-if="c.has_website"
                   class="btn btn-sm action-btn"
-                  :disabled="c.scan_status === 'scanning'"
+                  :disabled="isScanRunning(c)"
                   @click="scanOne(c)"
                 >
-                  {{ c.scan_status === 'scanning' ? '...' : c.scan_status === 'done' ? 'Neu scannen' : 'Scannen' }}
+                  {{ isScanRunning(c) ? '...' : c.scan_status === 'done' ? 'Neu scannen' : 'Scannen' }}
                 </button>
                 <div v-else class="action-btn-placeholder"></div>
                 <button
@@ -263,21 +231,18 @@ export default {
       searching:    false,
       hasSearched:  false,
       statusText:   'Suche läuft...',
-      progress:     { done: 0, total: 0 },
       toast:        null,
       activeFilter:   'alle',
       nextPageToken:  null,
       loadingMore:    false,
-      batchRunning:   false,
-      batchProgress:  0,
-      batchTotal:     0,
-      batchCancelled: false,
       saveFormOpen:   false,
       saveName:       '',
       stadtInputOpen: false,
       acIndex:        -1,
       stadtSuggestions: [],
       _acTimer:       null,
+      pollingActive:  false,
+      _pollTimer:     null,
       filters: [
         { value: 'alle',         label: 'Alle' },
         { value: 'ohne_website', label: 'Ohne Website' },
@@ -303,6 +268,9 @@ export default {
       if (!scanned.length) return 0
       return Math.round(scanned.reduce((s, c) => s + c.scan.score, 0) / scanned.length)
     },
+    pendingScanCount() {
+      return this.companies.filter(c => this.isScanRunning(c)).length
+    },
   },
   mounted() {
     const params  = new URLSearchParams(window.location.search)
@@ -312,17 +280,24 @@ export default {
     if (stadt)   this.query.stadt   = stadt
     if (branche && stadt) this.$nextTick(() => this.startSearch())
   },
+  beforeUnmount() {
+    this.stopPolling()
+  },
   methods: {
+    isScanRunning(company) {
+      return ['scanning', 'pending', 'running'].includes(company.scan_status)
+    },
+
     async startSearch() {
       if (!this.query.branche || !this.query.stadt || this.searching) return
 
+      this.stopPolling()
       this.searching    = true
       this.hasSearched  = true
       this.companies    = []
       this.nextPageToken = null
       this.activeFilter = 'alle'
       this.statusText   = `Suche nach "${this.query.branche}" in "${this.query.stadt}"...`
-      this.progress     = { done: 0, total: 0 }
 
       try {
         const res   = await axios.post('/api/search', this.query)
@@ -341,14 +316,75 @@ export default {
           lead_created: false,
         }))
 
-        await this.scanBatch(this.companies)
+        this.startPolling()
 
       } catch (e) {
-        this.showToast('Fehler bei der Suche. API-Key konfiguriert?')
+        if (e.response?.status === 429) {
+          this.showToast('Scan-Limit erreicht. Bitte Plan upgraden.')
+        } else {
+          this.showToast('Fehler bei der Suche. API-Key konfiguriert?')
+        }
         console.error(e)
       } finally {
         this.searching = false
       }
+    },
+
+    startPolling() {
+      if (this.pollingActive) return
+      this.pollingActive = true
+      this.schedulePoll()
+    },
+
+    stopPolling() {
+      this.pollingActive = false
+      if (this._pollTimer) {
+        clearTimeout(this._pollTimer)
+        this._pollTimer = null
+      }
+    },
+
+    schedulePoll() {
+      if (!this.pollingActive) return
+      this._pollTimer = setTimeout(() => this.poll(), 2000)
+    },
+
+    async poll() {
+      if (!this.pollingActive) return
+
+      const pendingCompanies = this.companies.filter(
+        c => c.id && this.isScanRunning(c)
+      )
+
+      if (pendingCompanies.length === 0) {
+        this.stopPolling()
+        return
+      }
+
+      const params = new URLSearchParams()
+      pendingCompanies.forEach(c => params.append('company_ids[]', c.id))
+
+      try {
+        const res = await axios.get('/api/scans/status?' + params)
+
+        for (const [companyId, scanData] of Object.entries(res.data)) {
+          const idx = this.companies.findIndex(c => c.id === parseInt(companyId))
+          if (idx === -1) continue
+
+          if (scanData.status === 'done') {
+            this.companies[idx].scan_status = 'done'
+            this.companies[idx].scan        = scanData
+          } else if (scanData.status === 'failed') {
+            this.companies[idx].scan_status = 'failed'
+          } else if (['running', 'pending'].includes(scanData.status)) {
+            this.companies[idx].scan_status = 'scanning'
+          }
+        }
+      } catch (e) {
+        console.error('Polling-Fehler:', e)
+      }
+
+      this.schedulePoll()
     },
 
     async loadMore() {
@@ -356,7 +392,6 @@ export default {
       this.loadingMore = true
 
       try {
-        // Google benötigt kurz Zeit bevor der Token nutzbar ist
         await new Promise(r => setTimeout(r, 2000))
 
         const res   = await axios.post('/api/search', {
@@ -375,7 +410,10 @@ export default {
         }))
 
         this.companies.push(...newEntries)
-        await this.scanBatch(newEntries)
+
+        if (!this.pollingActive) {
+          this.startPolling()
+        }
 
       } catch (e) {
         this.showToast('Fehler beim Laden weiterer Ergebnisse')
@@ -385,33 +423,26 @@ export default {
       }
     },
 
-    async scanBatch(entries) {
-      const toScan = entries.filter(c => c.has_website)
-      this.progress = { done: 0, total: toScan.length }
-      this.statusText = `Scanne Websites... (0/${toScan.length})`
+    async scanOne(company) {
+      if (!company.id || !company.has_website) return
 
-      for (const company of toScan) {
-        await this.scanOne(company, true)
-        this.progress.done++
-        this.statusText = `Scanne Websites... (${this.progress.done}/${this.progress.total})`
-      }
-    },
-
-    async scanOne(company, silent = false) {
       const idx = this.companies.findIndex(c => c.place_id === company.place_id)
       if (idx === -1) return
 
       this.companies[idx].scan_status = 'scanning'
 
       try {
-        const res  = await axios.post('/api/scan-url', { url: company.website_url })
-        const scan = res.data
-        this.companies[idx].scan_status = scan.status === 'done' ? 'done' : 'failed'
-        this.companies[idx].scan        = scan
-        if (!silent && scan.status === 'done') {
-          this.showToast(`${company.name}: Score ${scan.score}/100`)
+        await axios.post(`/api/companies/${company.id}/scan`)
+
+        if (!this.pollingActive) {
+          this.startPolling()
         }
-      } catch {
+      } catch (e) {
+        if (e.response?.status === 429) {
+          this.showToast('Scan-Limit erreicht. Bitte Plan upgraden.')
+        } else {
+          this.showToast(`Scan für ${company.name} fehlgeschlagen`)
+        }
         this.companies[idx].scan_status = 'failed'
       }
     },
@@ -454,31 +485,6 @@ export default {
         this.showToast('Suche gespeichert')
       } catch {
         this.showToast('Fehler beim Speichern')
-      }
-    },
-
-    async startBatchScan() {
-      const toScan = this.companies.filter(c => c.has_website && c.scan_status !== 'done')
-      if (!toScan.length) return
-
-      this.batchRunning   = true
-      this.batchCancelled = false
-      this.batchProgress  = 0
-      this.batchTotal     = toScan.length
-
-      for (const company of toScan) {
-        if (this.batchCancelled) break
-        try {
-          await this.scanOne(company, true)
-        } catch (e) {
-          console.error('Batch-Scan Fehler für', company.name, e)
-        }
-        this.batchProgress++
-      }
-
-      this.batchRunning = false
-      if (!this.batchCancelled) {
-        this.showToast(`Batch-Scan abgeschlossen: ${this.batchProgress} Websites gescannt`)
       }
     },
 
@@ -535,7 +541,7 @@ export default {
 
     showToast(msg) {
       this.toast = msg
-      setTimeout(() => { this.toast = null }, 3000)
+      setTimeout(() => { this.toast = null }, 3500)
     },
   },
 }
@@ -560,7 +566,6 @@ export default {
   min-width: 100px;
 }
 
-/* Autocomplete */
 .ac-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -584,7 +589,6 @@ export default {
   background: var(--bg-hover);
 }
 
-/* Feste Button-Breite in der Aktionstabelle */
 .action-btn {
   width: 100px;
   justify-content: center;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -33,6 +34,16 @@ class DashboardController extends Controller
             default                   => 'Guten Tag',
         };
 
-        return view('dashboard', compact('stats', 'recentLeads', 'lastSearch', 'greeting'));
+        $user       = Auth::user();
+        $rawLimit   = (method_exists($user, 'subscribed') && $user->subscribed())
+                        ? (int) $user->scans_limit
+                        : 10;
+        $scanLimit  = $rawLimit; // 0 = unlimited
+        $scanUsed   = (int) ($user->scans_this_month ?? 0);
+        $scanPercent = ($scanLimit > 0)
+            ? min(100, (int) round($scanUsed / $scanLimit * 100))
+            : 0;
+
+        return view('dashboard', compact('stats', 'recentLeads', 'lastSearch', 'greeting', 'scanUsed', 'scanLimit', 'scanPercent'));
     }
 }

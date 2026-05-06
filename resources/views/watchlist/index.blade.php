@@ -8,9 +8,7 @@
     </div>
 
     @if(session('success'))
-      <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
-        {{ session('success') }}
-      </div>
+      <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     <!-- Neue Suche speichern -->
@@ -83,7 +81,8 @@
                   </span>
                   <span
                     x-show="newCount > 0"
-                    style="background:#f0fdf4; color:#16a34a; font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px;"
+                    class="badge-green"
+                    style="font-size:11px; border-radius:20px;"
                   >
                     <span x-text="newCount"></span> neu
                   </span>

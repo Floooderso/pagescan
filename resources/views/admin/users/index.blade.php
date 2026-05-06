@@ -8,15 +8,11 @@
     </div>
 
     @if(session('success'))
-      <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
-        {{ session('success') }}
-      </div>
+      <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     @if($errors->any())
-      <div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
-        {{ $errors->first() }}
-      </div>
+      <div class="alert alert-error">{{ $errors->first() }}</div>
     @endif
 
     <div class="card" style="padding:0; overflow:hidden;">

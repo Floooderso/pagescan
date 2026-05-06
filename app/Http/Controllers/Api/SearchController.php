@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ScanWebsiteJob;
+use App\Models\Company;
+use App\Models\Scan;
 use App\Services\GooglePlacesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -25,6 +28,32 @@ class SearchController extends Controller
         $places = $data['results'];
         $token  = $data['next_page_token'];
 
+        $userId         = auth()->id();
+        $enrichedPlaces = [];
+
+        foreach ($places as $place) {
+            $company = Company::updateOrCreate(
+                ['place_id' => $place['place_id']],
+                [
+                    'name'        => $place['name'],
+                    'branche'     => $place['branche'],
+                    'stadt'       => $place['stadt'],
+                    'telefon'     => $place['telefon'] ?? null,
+                    'website_url' => $place['website_url'] ?? null,
+                    'has_website' => (bool) ($place['has_website'] ?? false),
+                    'rating'      => $place['rating'] ?? null,
+                    'bewertungen' => $place['bewertungen'] ?? null,
+                ]
+            );
+
+            if ($company->has_website) {
+                Scan::create(['company_id' => $company->id, 'status' => 'pending']);
+                ScanWebsiteJob::dispatch($company->id, $userId);
+            }
+
+            $enrichedPlaces[] = array_merge($place, ['id' => $company->id]);
+        }
+
         if (!$pageToken) {
             session(['last_search' => [
                 'branche'  => $branche,
@@ -37,14 +66,14 @@ class SearchController extends Controller
                     'website_url' => $p['website_url'],
                     'rating'      => $p['rating'],
                     'bewertungen' => $p['bewertungen'],
-                ], $places), 0, 5),
+                ], $enrichedPlaces), 0, 5),
             ]]);
         }
 
         return response()->json([
-            'companies'       => $places,
-            'total'           => count($places),
-            'ohne_website'    => count(array_filter($places, fn($p) => !$p['has_website'])),
+            'companies'       => $enrichedPlaces,
+            'total'           => count($enrichedPlaces),
+            'ohne_website'    => count(array_filter($enrichedPlaces, fn($p) => !$p['has_website'])),
             'next_page_token' => $token,
         ]);
     }

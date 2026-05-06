@@ -22,6 +22,12 @@ php artisan migrate --seed
 php artisan serve
 ```
 
+In einem zweiten Terminal (Queue Worker für async Scans):
+
+```bash
+php artisan queue:work --sleep=3 --tries=2
+```
+
 ## Login
 
 - **URL:** http://localhost:8000
@@ -50,6 +56,61 @@ Die Places API hat ein kostenloses Kontingent von ~200 $/Monat.
 - **Leads** – interessante Unternehmen direkt als Lead speichern
 - **Scan-Details** – SSL, Mobile, Impressum, Tracking, CMS, Ladezeit
 
-## Hinweis
+## Deployment (Production)
 
-Kein Queue Worker nötig – Scans laufen synchron (QUEUE_CONNECTION=sync).
+Für lokale Entwicklung SQLite beibehalten, für Production MySQL verwenden.
+
+### MySQL-Verbindung testen
+
+Bevor du auf MySQL umstellst, teste die Verbindung:
+
+```bash
+php artisan db:check-mysql
+```
+
+Optionen für abweichende Credentials:
+```bash
+php artisan db:check-mysql --host=db.example.com --database=pagescan_prod --username=pagescan --password=secret
+```
+
+### .env für Production
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pagescan
+DB_USERNAME=root
+DB_PASSWORD=dein_passwort
+```
+
+### Vollständiges Deployment
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm run build
+php artisan key:generate --force
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### MySQL-Kompatibilitäts-Hinweise
+
+- Alle Migrations sind MySQL 8.0+ kompatibel
+- `score_weights` (JSON) erfordert MySQL 5.7+, empfohlen MySQL 8.0
+- `place_id unique` auf `companies`-Tabelle: MySQL erlaubt mehrere NULL-Werte in UNIQUE-Spalten (korrekt)
+- `->after()` in ALTER-Migrations ist MySQL-spezifisch, wird von SQLite ignoriert (kein Problem)
+- Zeichensatz: MySQL sollte mit `utf8mb4` und `utf8mb4_unicode_ci` konfiguriert sein (Standard in Laravel)
+
+---
+
+## Stripe
+
+1. Stripe-Account anlegen: https://dashboard.stripe.com
+2. Drei Preise anlegen (Starter €29, Agency €79, Pro €149 – monatlich wiederkehrend)
+3. Price IDs in `.env` eintragen: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_AGENCY`, `STRIPE_PRICE_PRO`
+4. Webhook in Stripe konfigurieren: Endpoint `https://deine-domain.de/stripe/webhook`
+   - Events: `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+5. `STRIPE_WEBHOOK_SECRET` aus Stripe in `.env` eintragen
