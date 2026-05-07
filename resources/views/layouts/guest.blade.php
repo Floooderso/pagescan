@@ -11,7 +11,7 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-  <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:80px; background:var(--bg);">
+  <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; background:var(--bg);">
     <div style="font-weight:600; font-size:18px; color:var(--text-1); margin-bottom:32px;">PageScan</div>
     {{ $slot }}
   </div>

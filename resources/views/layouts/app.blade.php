@@ -42,7 +42,7 @@
         flex-wrap: wrap;
         gap: 8px;
     ">
-      <span style="font-size: 13px; color: {{ $trialBanner['type'] === 'expired' ? '#f87171' : '#93c5fd' }};">
+      <span style="font-size: 13px; color: {{ $trialBanner['type'] === 'expired' ? '#dc2626' : '#2563eb' }};">
         {{ $trialBanner['message'] }}
         @if($trialBanner['type'] === 'active' && ($trialBanner['days'] ?? 99) <= 7)
           Sichere dir jetzt deinen Plan.
@@ -50,8 +50,8 @@
       </span>
       <a href="{{ route('subscription.plans') }}" style="
           font-size: 12px; font-weight: 600;
-          color: {{ $trialBanner['type'] === 'expired' ? '#fff' : '#09090b' }};
-          background: {{ $trialBanner['type'] === 'expired' ? '#dc2626' : '#ffffff' }};
+          color: {{ $trialBanner['type'] === 'expired' ? '#ffffff' : '#ffffff' }};
+          background: {{ $trialBanner['type'] === 'expired' ? '#dc2626' : '#2563eb' }};
           padding: 5px 14px; border-radius: 6px; text-decoration: none; white-space: nowrap;
       ">
         {{ $trialBanner['type'] === 'expired' ? 'Jetzt abonnieren' : 'Pläne ansehen' }}

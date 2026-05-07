@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LeadController;
@@ -60,5 +61,8 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+Route::get('/auth/{provider}',          [SocialiteController::class, 'redirect'])->name('socialite.redirect')->where('provider', 'github|google');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->name('socialite.callback')->where('provider', 'github|google');
 
 require __DIR__.'/auth.php';

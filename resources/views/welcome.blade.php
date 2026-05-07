@@ -1,484 +1,518 @@
 <!DOCTYPE html>
-<html lang="de" style="height:100%;">
+<html lang="de" class="bg-white">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PageScan — Website-Scanner für Agenturen</title>
   <meta name="description" content="Finde Unternehmen mit schlechten Websites. Branche und Stadt eingeben, fertig.">
-  <link rel="preconnect" href="https://fonts.bunny.net">
-  <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css'])
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: #09090b;
-      color: #fff;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    a { text-decoration: none; color: inherit; }
-
-    /* ── Nav ── */
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 32px;
-      height: 52px;
-      border-bottom: 1px solid #27272a;
-    }
-    .nav-brand { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
-    .nav-right { display: flex; align-items: center; gap: 8px; }
-    .nav-login {
-      font-size: 13px;
-      color: #a1a1aa;
-      padding: 6px 14px;
-      border-radius: 6px;
-      transition: color .15s;
-    }
-    .nav-login:hover { color: #fff; }
-    .nav-cta {
-      font-size: 13px;
-      font-weight: 500;
-      background: #fff;
-      color: #09090b;
-      padding: 6px 14px;
-      border-radius: 6px;
-      transition: background .15s;
-    }
-    .nav-cta:hover { background: #e4e4e7; }
-
-    /* ── Hero ── */
-    .hero {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 32px 72px;
+    /* ── Steps Row ─────────────────────────────────────────── */
+    .steps-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
+      grid-template-columns: repeat(4, 1fr);
+      position: relative;
     }
-    .hero-tag {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #52525b;
-      margin-bottom: 20px;
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 28px;
+      right: 28px;
+      height: 1px;
+      background: #e4e4e7;
+      z-index: 0;
     }
-    .hero h1 {
-      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-      font-weight: 700;
-      line-height: 1.18;
-      letter-spacing: -0.5px;
-      color: #fff;
-      margin-bottom: 18px;
-    }
-    .hero h1 em {
-      font-style: normal;
-      color: #52525b;
-    }
-    .hero-desc {
-      font-size: 15px;
-      color: #71717a;
-      line-height: 1.7;
-      margin-bottom: 32px;
-    }
-    .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .btn-hero {
-      display: inline-block;
-      font-size: 14px;
-      font-weight: 500;
+    .step-v2 { padding: 0 32px 0 0; }
+    .step-v2-num {
+      width: 28px; height: 28px;
+      border: 1px solid #d4d4d8;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #71717a;
+      margin-bottom: 16px;
       background: #fff;
-      color: #09090b;
-      padding: 10px 22px;
-      border-radius: 7px;
-      transition: background .15s;
+      position: relative; z-index: 1;
     }
-    .btn-hero:hover { background: #e4e4e7; }
-    .hero-note { font-size: 12px; color: #3f3f46; }
+    .step-v2-title { font-size: 13px; font-weight: 500; color: #09090b; margin-bottom: 6px; }
+    .step-v2-desc  { font-size: 12px; color: #71717a; line-height: 1.65; }
 
-    /* ── Mock UI ── */
-    .mock {
-      background: #18181b;
-      border: 1px solid #27272a;
+    /* ── Criteria Card ─────────────────────────────────────── */
+    .criteria-card {
+      background: #f9fafb;
+      border: 1px solid #e4e4e7;
       border-radius: 10px;
-      overflow: hidden;
-      font-size: 13px;
-    }
-    .mock-bar {
-      padding: 10px 14px;
-      border-bottom: 1px solid #27272a;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .mock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .mock-label { font-size: 11px; color: #52525b; margin-left: 4px; }
-    .mock-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      border-bottom: 1px solid #27272a;
-      gap: 12px;
-    }
-    .mock-row:last-child { border-bottom: none; }
-    .mock-name { font-size: 12px; font-weight: 500; color: #fafafa; }
-    .mock-meta { font-size: 11px; color: #52525b; margin-top: 1px; }
-    .score-pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
-    .score-red    { background: rgba(220,38,38,.15);  color: #f87171; }
-    .score-yellow { background: rgba(202,138,4,.15);  color: #fbbf24; }
-    .score-green  { background: rgba(22,163,74,.15);  color: #4ade80; }
-
-    /* ── Sections ── */
-    .section {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 32px 80px;
-    }
-    .section-title {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #52525b;
-      margin-bottom: 28px;
-    }
-    .divider { border: none; border-top: 1px solid #27272a; margin: 0 32px; }
-
-    /* ── Steps grid (2×2) ── */
-    .steps {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      background: #27272a;
-      border: 1px solid #27272a;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .step {
-      background: #09090b;
       padding: 24px;
     }
-    .step:hover { background: #18181b; }
-    .step-num { font-size: 11px; color: #3f3f46; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
-    .step-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
-    .step-desc { font-size: 13px; color: #71717a; line-height: 1.6; }
 
-    /* ── Criteria + Context (side by side) ── */
-    .criteria-split {
+    /* ── Feature Grid ──────────────────────────────────────── */
+    .feature-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: start;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
-    .criteria { display: flex; flex-direction: column; }
-    .criterion {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #27272a;
-      font-size: 13px;
+    .feature-card {
+      padding: 24px;
+      background: #f9fafb;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      border-left-width: 3px;
+      border-left-style: solid;
     }
-    .criterion:first-child { border-top: 1px solid #27272a; }
-    .criterion-name { color: #d4d4d8; }
-    .criterion-pts { color: #3f3f46; font-variant-numeric: tabular-nums; }
-    .criteria-note { font-size: 12px; color: #3f3f46; margin-top: 12px; line-height: 1.6; }
-    .context-list { display: flex; flex-direction: column; gap: 20px; }
-    .context-item { display: flex; gap: 14px; align-items: flex-start; }
-    .context-num { font-size: 11px; color: #3f3f46; padding-top: 2px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-    .context-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-    .context-desc { font-size: 13px; color: #71717a; line-height: 1.6; }
+    .feature-card:nth-child(1) { border-left-color: #a1a1aa; }
+    .feature-card:nth-child(2) { border-left-color: #71717a; }
+    .feature-card:nth-child(3) { border-left-color: #52525b; }
+    .feature-card-title { font-size: 13px; font-weight: 500; color: #09090b; margin-bottom: 8px; }
+    .feature-card-desc  { font-size: 13px; color: #71717a; line-height: 1.65; }
 
-    /* ── Pricing ── */
+    /* ── Testimonial Row ───────────────────────────────────── */
+    .testimonial-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .testimonial-card {
+      background: #f9fafb;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .testimonial-card::before {
+      content: '\201C';
+      font-size: 40px;
+      line-height: 1;
+      color: #d4d4d8;
+      display: block;
+      margin-bottom: 8px;
+      font-family: Georgia, serif;
+    }
+    .testimonial-text   { font-size: 13px; color: #71717a; line-height: 1.7; margin-bottom: 16px; }
+    .testimonial-author { font-size: 12px; font-weight: 500; color: #a1a1aa; }
+
+    /* ── Pricing Grid ──────────────────────────────────────── */
     .pricing-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: #27272a;
-      border: 1px solid #27272a;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .plan {
-      background: #09090b;
-      padding: 28px 24px;
-    }
-    .plan:hover { background: #111113; }
-    .plan-name {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: #52525b;
-      margin-bottom: 16px;
-    }
-    .plan-price {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -1px;
-      margin-bottom: 4px;
-    }
-    .plan-period { font-size: 13px; font-weight: 400; color: #52525b; }
-    .plan-divider { border: none; border-top: 1px solid #27272a; margin: 20px 0; }
-    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-    .plan-features li { font-size: 13px; color: #71717a; }
-    .plan-features li strong { color: #d4d4d8; font-weight: 500; }
-    .plan-btn {
-      display: block;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 500;
-      padding: 9px 0;
-      border-radius: 6px;
-      border: 1px solid #27272a;
-      color: #a1a1aa;
-      transition: border-color .15s, color .15s;
-    }
-    .plan-btn:hover { border-color: #52525b; color: #fff; }
-    .plan-btn-primary {
-      background: #fff;
-      color: #09090b;
-      border-color: #fff;
-    }
-    .plan-btn-primary:hover { background: #e4e4e7; border-color: #e4e4e7; color: #09090b; }
-    .plan-highlight { background: #18181b; }
-
-    /* ── Footer ── */
-    .footer {
-      border-top: 1px solid #27272a;
-      padding: 24px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
       gap: 12px;
     }
-    .footer-copy { font-size: 12px; color: #3f3f46; }
-    .footer-links { display: flex; gap: 20px; }
-    .footer-links a { font-size: 12px; color: #3f3f46; transition: color .15s; }
-    .footer-links a:hover { color: #71717a; }
+    .plan {
+      background: #f9fafb;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+    }
+    .plan-highlight { border-color: #a1a1aa; }
 
+    /* ── Pulse animation (Live-Dot) ───────────────────────── */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
     @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; gap: 40px; padding: 56px 24px 48px; }
-      .mock { display: none; }
-      .criteria-split { grid-template-columns: 1fr; gap: 32px; }
+      .steps-row       { grid-template-columns: 1fr 1fr; }
+      .steps-row::before { display: none; }
+      .feature-grid    { grid-template-columns: 1fr; }
+      .testimonial-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
-      .nav { padding: 0 20px; }
-      .section { padding: 0 20px 60px; }
-      .steps { grid-template-columns: 1fr; }
+      .steps-row    { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
-      .footer { padding: 20px; }
-      .divider { margin: 0 20px; }
     }
   </style>
 </head>
-<body>
+<body class="bg-white text-zinc-900 antialiased" style="font-family:'Geist',system-ui,sans-serif;">
 
-<nav class="nav">
-  <span class="nav-brand">PageScan</span>
-  <div class="nav-right">
-    <a href="#preise" class="nav-login">Preise</a>
-    <a href="{{ route('login') }}" class="nav-login">Anmelden</a>
-    <a href="{{ route('register') }}" class="nav-cta">Kostenlos testen</a>
-  </div>
-</nav>
+  {{-- ── 1. NAV ── --}}
+  <nav class="nav sticky top-0 z-50">
+    <span class="nav-brand">PageScan</span>
+    <a href="#schritte" class="nav-link">So funktioniert's</a>
+    <a href="#preise"   class="nav-link">Preise</a>
+    <div class="nav-spacer"></div>
+    <a href="{{ route('login') }}"    class="btn btn-sm" style="margin-right:4px;">Anmelden</a>
+    <a href="{{ route('register') }}" class="btn btn-sm btn-primary">Kostenlos testen</a>
+  </nav>
 
-<div class="hero">
-  <div>
-    <span class="hero-tag">Website-Scanner für Agenturen &amp; Freelancer</span>
-    <h1>Finde Unternehmen mit <em>schlechten Websites.</em></h1>
-    <p class="hero-desc">
-      Branche und Stadt eingeben — PageScan sucht via Google Places, scannt jede Website live und zeigt dir wer einen neuen Webauftritt braucht.
-    </p>
-    <div class="hero-actions">
-      <a href="{{ route('register') }}" class="btn-hero">10 Scans gratis starten</a>
-      <span class="hero-note">Keine Kreditkarte nötig</span>
+  {{-- ── 2. HERO ── --}}
+  <section class="py-28 text-center">
+    <div class="max-w-6xl mx-auto px-6">
+      <h1 class="hero-item opacity-0 translate-y-3 text-6xl font-bold tracking-tight leading-[1.05] text-zinc-900">
+        Finde Kunden mit<br>schlechten Websites.
+      </h1>
     </div>
-  </div>
+  </section>
 
-  <div class="mock">
-    <div class="mock-bar">
-      <div class="mock-dot" style="background:#ef4444;"></div>
-      <div class="mock-dot" style="background:#f59e0b;"></div>
-      <div class="mock-dot" style="background:#22c55e;"></div>
-      <span class="mock-label">Friseure München — 5 Ergebnisse</span>
-    </div>
-    <div class="mock-row">
-      <div><div class="mock-name">Salon Bella Vista</div><div class="mock-meta">Schwabing · WordPress · kein SSL</div></div>
-      <span class="score-pill score-red">28/100</span>
-    </div>
-    <div class="mock-row">
-      <div><div class="mock-name">Hairstyle by Marco</div><div class="mock-meta">Maxvorstadt · keine Website</div></div>
-      <span class="score-pill score-red">—</span>
-    </div>
-    <div class="mock-row">
-      <div><div class="mock-name">Friseur am Dom</div><div class="mock-meta">Altstadt · Wix · kein Impressum</div></div>
-      <span class="score-pill score-yellow">41/100</span>
-    </div>
-    <div class="mock-row">
-      <div><div class="mock-name">HairLab Studio</div><div class="mock-meta">Bogenhausen · nicht mobil</div></div>
-      <span class="score-pill score-yellow">55/100</span>
-    </div>
-    <div class="mock-row">
-      <div><div class="mock-name">Coiffeur Deluxe</div><div class="mock-meta">Neuhausen · TYPO3 · 0,8s</div></div>
-      <span class="score-pill score-green">82/100</span>
-    </div>
-  </div>
-</div>
+  {{-- ── 4. STATS ── --}}
+  <div class="border-t border-b border-zinc-200" data-fade>
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-3 divide-x divide-zinc-200">
 
-<hr class="divider">
-
-<div class="section" style="padding-top:64px;">
-  <div class="section-title">So funktioniert's</div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-title">Branche + Stadt eingeben</div>
-      <div class="step-desc">„Friseure München" oder „Steuerberater Hamburg" — PageScan zieht alle Einträge direkt aus Google Places.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-title">Websites werden live gescannt</div>
-      <div class="step-desc">Jede gefundene Website bekommt einen Score von 0–100 auf Basis von SSL, Mobile, Ladezeit, Impressum und mehr.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-title">Leads speichern und verwalten</div>
-      <div class="step-desc">Interessante Unternehmen als Lead markieren, Status tracken, Notizen hinterlegen — ohne externes CRM.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <div class="step-title">Watchlist automatisch laufen lassen</div>
-      <div class="step-desc">Suchen speichern, täglich automatisch wiederholen. Neue Treffer landen sofort in deiner Lead-Liste.</div>
-    </div>
-  </div>
-</div>
-
-<hr class="divider">
-
-<div class="section" style="padding-top:64px;">
-  <div class="section-title">Was gescannt wird</div>
-  <div class="criteria-split">
-    <div class="criteria">
-      <div class="criterion">
-        <span class="criterion-name">Erreichbarkeit (HTTP 200)</span>
-        <span class="criterion-pts">30 Pkt</span>
-      </div>
-      <div class="criterion">
-        <span class="criterion-name">SSL / HTTPS</span>
-        <span class="criterion-pts">20 Pkt</span>
-      </div>
-      <div class="criterion">
-        <span class="criterion-name">Mobile-Optimierung</span>
-        <span class="criterion-pts">20 Pkt</span>
-      </div>
-      <div class="criterion">
-        <span class="criterion-name">Kontaktmöglichkeit</span>
-        <span class="criterion-pts">10 Pkt</span>
-      </div>
-      <div class="criterion">
-        <span class="criterion-name">Impressum vorhanden</span>
-        <span class="criterion-pts">10 Pkt</span>
-      </div>
-      <div class="criterion">
-        <span class="criterion-name">Favicon</span>
-        <span class="criterion-pts">10 Pkt</span>
-      </div>
-      <p class="criteria-note">Zusätzlich erkannt (ohne Punktwertung): CMS, OG-Tags, Cookie-Banner, Tracking-Pixel, Alt-Tag-Ratio, Broken Links, Ladezeit-Rating</p>
-    </div>
-    <div class="context-list">
-      <div class="context-item">
-        <span class="context-num">—</span>
-        <div>
-          <div class="context-title">Gesprächseinstieg mit Zahlen</div>
-          <div class="context-desc">„Ihre Website hat 32 von 100 Punkten — kein SSL, nicht mobil-optimiert." Das öffnet Türen schneller als jeder Kaltanruf ohne Vorbereitung.</div>
+        <div class="px-12 py-10">
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight leading-none">
+            <span class="text-zinc-400 font-normal">0–</span><span data-counter data-value="100">0</span>
+          </div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Website-Score pro Scan</div>
+          <p class="text-sm text-zinc-500 mt-3">Jede Website bekommt einen objektiven Score</p>
         </div>
-      </div>
-      <div class="context-item">
-        <span class="context-num">—</span>
-        <div>
-          <div class="context-title">Gezieltes Angebot statt Raten</div>
-          <div class="context-desc">Du siehst vor dem ersten Kontakt was fehlt. WordPress ohne SSL, kein Impressum, keine Kontaktseite — dein Angebot passt von Anfang an.</div>
+
+        <div class="px-12 py-10">
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight leading-none">
+            <span data-counter data-value="6">0</span><span>+</span>
+          </div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Geprüfte Kriterien</div>
+          <p class="text-sm text-zinc-500 mt-3">SSL, Mobile, Impressum, Ladezeit und mehr</p>
         </div>
-      </div>
-      <div class="context-item">
-        <span class="context-num">—</span>
-        <div>
-          <div class="context-title">Gewichtung anpassbar</div>
-          <div class="context-desc">SEO-Agentur? Webdesign-Freelancer? Lokale Vermarktung? Passe die Kriterien-Gewichtung in deinem Profil an — der Score rechnet sich automatisch neu.</div>
+
+        <div class="px-12 py-10">
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight leading-none">
+            <span style="display:inline-block; width:8px; height:8px; background:#22c55e; border-radius:50%; margin-right:8px; vertical-align:middle; animation:pulse 2s infinite;"></span>Live
+          </div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Echtzeitdaten via Google</div>
+          <p class="text-sm text-zinc-500 mt-3">Keine gecachten Daten, immer aktuell</p>
         </div>
+
       </div>
     </div>
   </div>
-</div>
 
-<hr class="divider">
+  {{-- ── 5. SO FUNKTIONIERT'S ── --}}
+  <div id="schritte" class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-10">So funktioniert's</div>
+      <div class="steps-row">
 
-<div class="section" id="preise" style="padding-top:64px; max-width:1100px;">
-  <div class="section-title">Preise</div>
-  <div class="pricing-grid">
+        <div class="step-v2">
+          <div class="step-v2-num">01</div>
+          <div class="step-v2-title">Branche + Stadt eingeben</div>
+          <p class="step-v2-desc">„Friseure München" oder „Steuerberater Hamburg" — PageScan zieht alle Einträge direkt aus Google Places.</p>
+        </div>
 
-    <div class="plan">
-      <div class="plan-name">Starter</div>
-      <div class="plan-price">€29<span class="plan-period">/Monat</span></div>
-      <hr class="plan-divider">
-      <ul class="plan-features">
-        <li><strong>100 Scans</strong> pro Monat</li>
-        <li><strong>1 Nutzer</strong></li>
-        <li>Lead-Management</li>
-        <li>Watchlist & Auto-Scan</li>
-        <li>CSV-Export</li>
-      </ul>
-      <a href="{{ route('register') }}" class="plan-btn">Jetzt starten</a>
+        <div class="step-v2">
+          <div class="step-v2-num">02</div>
+          <div class="step-v2-title">Websites werden live gescannt</div>
+          <p class="step-v2-desc">Jede Website bekommt einen Score von 0–100 auf Basis von SSL, Mobile, Ladezeit, Impressum und mehr.</p>
+        </div>
+
+        <div class="step-v2">
+          <div class="step-v2-num">03</div>
+          <div class="step-v2-title">Leads speichern und verwalten</div>
+          <p class="step-v2-desc">Interessante Unternehmen als Lead markieren, Status tracken, Notizen hinterlegen — ohne externes CRM.</p>
+        </div>
+
+        <div class="step-v2">
+          <div class="step-v2-num">04</div>
+          <div class="step-v2-title">Watchlist automatisch laufen lassen</div>
+          <p class="step-v2-desc">Suchen speichern, täglich automatisch wiederholen. Neue Treffer landen sofort in deiner Lead-Liste.</p>
+        </div>
+
+      </div>
     </div>
-
-    <div class="plan plan-highlight">
-      <div class="plan-name">Agency</div>
-      <div class="plan-price">€79<span class="plan-period">/Monat</span></div>
-      <hr class="plan-divider">
-      <ul class="plan-features">
-        <li><strong>500 Scans</strong> pro Monat</li>
-        <li><strong>5 Nutzer</strong></li>
-        <li>Lead-Management</li>
-        <li>Watchlist & Auto-Scan</li>
-        <li>Team-Features</li>
-        <li>CSV-Export</li>
-      </ul>
-      <a href="{{ route('register') }}" class="plan-btn plan-btn-primary">14 Tage kostenlos</a>
-    </div>
-
-    <div class="plan">
-      <div class="plan-name">Pro</div>
-      <div class="plan-price">€149<span class="plan-period">/Monat</span></div>
-      <hr class="plan-divider">
-      <ul class="plan-features">
-        <li><strong>Unbegrenzte Scans</strong></li>
-        <li><strong>Unbegrenzte Nutzer</strong></li>
-        <li>Lead-Management</li>
-        <li>Watchlist & Auto-Scan</li>
-        <li>Team-Features</li>
-        <li>Prioritäts-Support</li>
-      </ul>
-      <a href="{{ route('register') }}" class="plan-btn">Jetzt starten</a>
-    </div>
-
   </div>
-</div>
 
-<footer class="footer">
-  <span class="footer-copy">© {{ date('Y') }} PageScan</span>
-  <div class="footer-links">
-    <a href="{{ route('impressum') }}">Impressum</a>
-    <a href="{{ route('datenschutz') }}">Datenschutz</a>
+  {{-- ── 6. MOCK-SCANNER ── --}}
+  <div class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-8">Echte Ergebnisse, live gescannt</div>
+      <div class="border border-zinc-200 rounded-xl overflow-hidden bg-white" style="box-shadow:0 4px 24px rgba(0,0,0,0.05);">
+
+        {{-- Titelleiste --}}
+        <div class="px-5 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full" style="background:#ef4444;"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background:#f59e0b;"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background:#22c55e;"></span>
+          </div>
+          <span class="text-xs text-zinc-400 font-medium">Friseure München</span>
+          <span class="text-xs text-zinc-300">5 Ergebnisse</span>
+        </div>
+
+        {{-- Spaltenheader --}}
+        <div class="grid px-5 py-2.5 border-b border-zinc-100 bg-zinc-50" style="grid-template-columns:1fr auto auto auto;">
+          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Unternehmen</span>
+          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-24 text-center">CMS</span>
+          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-24 text-center">Probleme</span>
+          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-20 text-right">Score</span>
+        </div>
+
+        {{-- Zeilen --}}
+        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
+          <div>
+            <div class="text-sm text-zinc-800 font-medium">Salon Bella Vista</div>
+            <div class="text-xs text-zinc-400 mt-0.5">Schwabing</div>
+          </div>
+          <span class="text-xs text-zinc-400 w-24 text-center">WordPress</span>
+          <span class="text-xs text-zinc-400 w-24 text-center">kein SSL</span>
+          <span class="text-xs font-mono font-semibold bg-red-50 text-red-500 px-2 py-0.5 w-20 text-center">28/100</span>
+        </div>
+
+        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
+          <div>
+            <div class="text-sm text-zinc-800 font-medium">Hairstyle by Marco</div>
+            <div class="text-xs text-zinc-400 mt-0.5">Maxvorstadt</div>
+          </div>
+          <span class="text-xs text-zinc-400 w-24 text-center">—</span>
+          <span class="text-xs text-zinc-400 w-24 text-center">keine Website</span>
+          <span class="text-xs font-mono font-semibold bg-red-50 text-red-500 px-2 py-0.5 w-20 text-center">—</span>
+        </div>
+
+        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
+          <div>
+            <div class="text-sm text-zinc-800 font-medium">Friseur am Dom</div>
+            <div class="text-xs text-zinc-400 mt-0.5">Altstadt</div>
+          </div>
+          <span class="text-xs text-zinc-400 w-24 text-center">Wix</span>
+          <span class="text-xs text-zinc-400 w-24 text-center">kein Impressum</span>
+          <span class="text-xs font-mono font-semibold bg-amber-50 text-amber-500 px-2 py-0.5 w-20 text-center">41/100</span>
+        </div>
+
+        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
+          <div>
+            <div class="text-sm text-zinc-800 font-medium">HairLab Studio</div>
+            <div class="text-xs text-zinc-400 mt-0.5">Bogenhausen</div>
+          </div>
+          <span class="text-xs text-zinc-400 w-24 text-center">Squarespace</span>
+          <span class="text-xs text-zinc-400 w-24 text-center">nicht mobil</span>
+          <span class="text-xs font-mono font-semibold bg-amber-50 text-amber-500 px-2 py-0.5 w-20 text-center">55/100</span>
+        </div>
+
+        <div class="grid items-center px-5 py-3.5 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
+          <div>
+            <div class="text-sm text-zinc-800 font-medium">Coiffeur Deluxe</div>
+            <div class="text-xs text-zinc-400 mt-0.5">Neuhausen</div>
+          </div>
+          <span class="text-xs text-zinc-400 w-24 text-center">TYPO3</span>
+          <span class="text-xs text-zinc-400 w-24 text-center">—</span>
+          <span class="text-xs font-mono font-semibold bg-green-50 text-green-600 px-2 py-0.5 w-20 text-center">82/100</span>
+        </div>
+
+      </div>
+    </div>
   </div>
-</footer>
+
+  {{-- ── 7. KRITERIEN + ZITAT ── --}}
+  <div class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-2 gap-16 items-start">
+
+        <div class="criteria-card">
+          <div class="divide-y divide-zinc-200">
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">Erreichbarkeit (HTTP 200)</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">30 Pkt</span>
+            </div>
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">SSL / HTTPS</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">20 Pkt</span>
+            </div>
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">Mobile-Optimierung</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">20 Pkt</span>
+            </div>
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">Kontaktmöglichkeit</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">10 Pkt</span>
+            </div>
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">Impressum vorhanden</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">10 Pkt</span>
+            </div>
+            <div class="flex justify-between py-4 text-sm">
+              <span class="text-zinc-500">Favicon</span>
+              <span class="text-zinc-900 font-semibold tabular-nums">10 Pkt</span>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-300 mt-6 leading-relaxed">
+            Zusätzlich erkannt ohne Wertung: CMS, OG-Tags, Cookie-Banner,
+            Tracking-Pixel, Alt-Tags, Broken Links, Ladezeit
+          </p>
+        </div>
+
+        <div>
+          <blockquote class="text-base font-medium text-zinc-800 leading-relaxed mb-6">
+            „Ihre Website hat 28 von 100 Punkten — kein SSL, nicht mobil,
+            kein Impressum. Ich kann Ihnen zeigen wie wir das in zwei Wochen beheben."
+          </blockquote>
+          <p class="text-xs uppercase tracking-widest text-zinc-400">So klingt ein Kaltanruf mit PageScan-Daten</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {{-- ── 7. WARUM PAGESCAN ── --}}
+  <div class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-8">Warum PageScan?</div>
+      <div class="feature-grid">
+
+        <div class="feature-card">
+          <div class="feature-card-title">Kein manuelles Recherchieren</div>
+          <p class="feature-card-desc">Stunden sparen — PageScan übernimmt die Arbeit vollautomatisch und liefert dir sofort verwertbare Ergebnisse.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-title">Datenbasierte Kaltakquise</div>
+          <p class="feature-card-desc">Mit konkreten Scores überzeugst du Kunden sofort — keine vagen Versprechen, sondern harte Fakten direkt aus dem Scan.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-title">Immer aktuell</div>
+          <p class="feature-card-desc">Die Watchlist scannt täglich neu. Neue Treffer landen automatisch in deiner Lead-Liste — ohne dass du etwas tun musst.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {{-- ── 8. PRICING ── --}}
+  <div id="preise" class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="pricing-grid">
+
+        {{-- Starter --}}
+        <div class="plan">
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Starter</div>
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
+            €29<span class="text-sm font-normal text-zinc-400">/Monat</span>
+          </div>
+          <div class="border-t border-zinc-200 my-6"></div>
+          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
+            <li><span class="text-zinc-300 mr-2">·</span>100 Scans pro Monat</li>
+            <li><span class="text-zinc-300 mr-2">·</span>1 Nutzer</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
+            <li><span class="text-zinc-300 mr-2">·</span>CSV-Export</li>
+          </ul>
+          <a href="{{ route('register') }}"
+             class="mt-8 border border-zinc-200 hover:border-zinc-400 text-zinc-500 hover:text-zinc-900 py-2.5 text-sm text-center transition-colors block w-full">
+            Jetzt starten
+          </a>
+        </div>
+
+        {{-- Agency (featured) --}}
+        <div class="plan plan-highlight">
+          <div class="flex items-center mb-1">
+            <span class="text-xs uppercase tracking-widest text-zinc-400">Agency</span>
+            <span class="text-[10px] bg-zinc-900 text-white px-2 py-0.5 font-semibold ml-2 rounded-full">Beliebt</span>
+          </div>
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
+            €79<span class="text-sm font-normal text-zinc-400">/Monat</span>
+          </div>
+          <div class="border-t border-zinc-200 my-6"></div>
+          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
+            <li><span class="text-zinc-300 mr-2">·</span>500 Scans pro Monat</li>
+            <li><span class="text-zinc-300 mr-2">·</span>5 Nutzer</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Team-Features</li>
+            <li><span class="text-zinc-300 mr-2">·</span>CSV-Export</li>
+          </ul>
+          <a href="{{ route('register') }}"
+             class="mt-8 bg-zinc-900 hover:bg-zinc-700 text-white py-2.5 text-sm text-center font-medium transition-colors block w-full">
+            14 Tage kostenlos
+          </a>
+        </div>
+
+        {{-- Pro --}}
+        <div class="plan">
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Pro</div>
+          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
+            €149<span class="text-sm font-normal text-zinc-400">/Monat</span>
+          </div>
+          <div class="border-t border-zinc-200 my-6"></div>
+          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
+            <li><span class="text-zinc-300 mr-2">·</span>Unbegrenzte Scans</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Unbegrenzte Nutzer</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Team-Features</li>
+            <li><span class="text-zinc-300 mr-2">·</span>Prioritäts-Support</li>
+          </ul>
+          <a href="{{ route('register') }}"
+             class="mt-8 border border-zinc-200 hover:border-zinc-400 text-zinc-500 hover:text-zinc-900 py-2.5 text-sm text-center transition-colors block w-full">
+            Jetzt starten
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {{-- ── 10. FOOTER ── --}}
+  <footer class="border-t border-zinc-200 py-8">
+    <div class="max-w-6xl mx-auto px-6 flex justify-between items-center flex-wrap gap-4">
+      <span class="text-xs text-zinc-400">© {{ date('Y') }} PageScan</span>
+      <nav class="flex gap-5">
+        <a href="{{ route('impressum') }}"   class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Impressum</a>
+        <a href="{{ route('datenschutz') }}" class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Datenschutz</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    /* ── HERO LOAD ANIMATION ─────────────────────────────────── */
+    const heroItems  = document.querySelectorAll('.hero-item');
+    const heroDelays = [0, 80, 180, 280];
+    heroItems.forEach((el, i) => {
+      const delay = heroDelays[i] ?? 280;
+      el.style.transition = `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.opacity   = '1';
+        el.style.transform = 'translateY(0)';
+      }));
+    });
+
+    /* ── SCROLL ANIMATIONS (Stripe-style, DOMContentLoaded) ───── */
+    document.addEventListener('DOMContentLoaded', () => {
+      const targets = document.querySelectorAll(
+        '.step-v2, .feature-card, .plan, .criteria-card'
+      );
+      targets.forEach((el, i) => {
+        el.style.opacity    = '0';
+        el.style.transform  = 'translateY(20px)';
+        el.style.transition = `opacity 0.5s cubic-bezier(0.16,1,0.3,1) ${(i % 4) * 0.08}s, transform 0.5s cubic-bezier(0.16,1,0.3,1) ${(i % 4) * 0.08}s`;
+      });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity   = '1';
+            entry.target.style.transform = 'translateY(0)';
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+      targets.forEach(el => observer.observe(el));
+    });
+
+    /* ── COUNTER ANIMATION ───────────────────────────────────── */
+    const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el       = entry.target;
+        const target   = parseInt(el.dataset.value, 10);
+        const duration = 1400;
+        const start    = performance.now();
+        const tick = (now) => {
+          const elapsed  = Math.min(now - start, duration);
+          const progress = easeOutQuart(elapsed / duration);
+          el.textContent = Math.round(progress * target);
+          if (elapsed < duration) requestAnimationFrame(tick);
+          else el.textContent = target;
+        };
+        requestAnimationFrame(tick);
+        counterObserver.unobserve(el);
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
+  </script>
 
 </body>
 </html>

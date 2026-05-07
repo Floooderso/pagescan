@@ -42,6 +42,9 @@ class User extends Authenticatable
         'role',
         'scans_this_month',
         'scans_limit',
+        'provider',
+        'provider_id',
+        'avatar',
     ];
 
     /**
