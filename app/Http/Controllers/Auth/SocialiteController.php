@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -36,13 +38,17 @@ class SocialiteController extends Controller
             }
 
             $user = User::create([
-                'name'        => $socialiteUser->getName() ?? $socialiteUser->getNickname() ?? 'User',
-                'email'       => $socialiteUser->getEmail(),
-                'avatar'      => $socialiteUser->getAvatar(),
-                'provider'    => $provider,
-                'provider_id' => $socialiteUser->getId(),
-                'password'    => bcrypt(Str::random(32)),
+                'name'          => $socialiteUser->getName() ?? $socialiteUser->getNickname() ?? 'User',
+                'email'         => $socialiteUser->getEmail(),
+                'avatar'        => $socialiteUser->getAvatar(),
+                'provider'      => $provider,
+                'provider_id'   => $socialiteUser->getId(),
+                'password'      => bcrypt(Str::random(32)),
+                'trial_ends_at' => now()->addDays(14),
+                'scans_limit'   => 10,
             ]);
+
+            Mail::to($user->email)->queue(new WelcomeMail($user));
 
             Auth::login($user);
 

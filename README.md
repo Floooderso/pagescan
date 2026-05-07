@@ -106,6 +106,69 @@ php artisan view:cache
 
 ---
 
+## OAuth-Login (GitHub & Google)
+
+### GitHub
+1. https://github.com/settings/applications/new
+2. **Homepage URL:** `https://deine-domain.de`
+3. **Callback URL:** `https://deine-domain.de/auth/github/callback`
+4. Client ID + Secret in `.env` eintragen:
+   ```
+   GITHUB_CLIENT_ID=
+   GITHUB_CLIENT_SECRET=
+   GITHUB_REDIRECT_URI=https://deine-domain.de/auth/github/callback
+   ```
+
+### Google
+1. https://console.cloud.google.com → APIs & Dienste → Anmeldedaten
+2. OAuth 2.0-Client erstellen (Webanwendung)
+3. **Autorisierter Weiterleitungs-URI:** `https://deine-domain.de/auth/google/callback`
+4. Client ID + Secret in `.env` eintragen:
+   ```
+   GOOGLE_CLIENT_ID=
+   GOOGLE_CLIENT_SECRET=
+   GOOGLE_REDIRECT_URI=https://deine-domain.de/auth/google/callback
+   ```
+
+---
+
+## Queue Worker (Pflicht für Scans)
+
+Scans laufen asynchron via Queue Jobs. Ohne Worker werden keine Scans ausgeführt.
+
+**Lokal (Development):**
+```bash
+php artisan queue:work --sleep=3 --tries=2
+```
+
+**Produktion (Supervisor empfohlen):**
+```ini
+[program:pagescan-worker]
+command=php /var/www/pagescan/artisan queue:work --sleep=3 --tries=2 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/pagescan/storage/logs/worker.log
+```
+
+---
+
+## Cron-Jobs (Pflicht für Watchlist & E-Mails)
+
+Folgendes Cron-Entry auf dem Server einrichten:
+```
+* * * * * cd /var/www/pagescan && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Geplante Tasks:
+- **täglich 06:00** – Watchlist-Suchen automatisch wiederholen
+- **täglich 09:00** – Trial-Ablauf-Reminder senden (3 Tage vor Ende)
+- **1. des Monats** – Scan-Kontingent aller User zurücksetzen
+
+---
+
 ## Stripe
 
 1. Stripe-Account anlegen: https://dashboard.stripe.com

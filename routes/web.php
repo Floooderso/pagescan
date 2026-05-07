@@ -20,6 +20,7 @@ Route::get('/', function () {
 })->name('home');
 Route::get('/impressum',    fn() => view('legal.impressum'))->name('impressum');
 Route::get('/datenschutz',  fn() => view('legal.datenschutz'))->name('datenschutz');
+Route::get('/sitemap.xml',  fn() => response(view('sitemap'), 200)->header('Content-Type', 'application/xml'))->name('sitemap');
 
 Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('cashier.webhook');
 
@@ -42,7 +43,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/companies/export',          [CompanyController::class, 'exportCsv'])->name('companies.export');
         Route::get('/companies/{company}',       [CompanyController::class, 'show'])->name('companies.show');
-        Route::post('/companies/{company}/scan', [CompanyController::class, 'scan'])->name('companies.scan')->middleware('scan.quota');
+        Route::post('/companies/{company}/scan', [CompanyController::class, 'scan'])->name('companies.scan')->middleware(['scan.quota', 'throttle:30,1']);
 
         Route::get('/leads/export', [LeadController::class, 'exportCsv'])->name('leads.export');
         Route::get('/leads',        [LeadController::class, 'index'])->name('leads.index');

@@ -23,7 +23,13 @@
         @enderror
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+        <a href="{{ route('password.request') }}" style="font-size:12px; color:var(--text-3); text-decoration:none; hover:color:var(--text-2);">
+          Passwort vergessen?
+        </a>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
         Anmelden
       </button>
     </form>

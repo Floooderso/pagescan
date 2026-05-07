@@ -11,6 +11,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/search',         [SearchController::class,     'search'])->middleware(['throttle:30,1', 'scan.quota']);
     Route::get('/cities',          [SearchController::class,     'cities']);
     Route::post('/scan-url',       [CompanyApiController::class, 'scanUrl'])->middleware(['throttle:60,1', 'scan.quota']);
+    Route::post('/url-lead',       [CompanyApiController::class, 'saveUrlLead']);
     Route::get('/companies',       [CompanyApiController::class, 'index']);
     Route::get('/filter-options',  [CompanyApiController::class, 'filterOptions']);
     Route::get('/scans/status',    [CompanyApiController::class, 'scanStatus']);

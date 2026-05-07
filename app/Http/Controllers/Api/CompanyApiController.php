@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\ScanWebsiteJob;
 use App\Models\Company;
+use App\Models\Lead;
 use App\Models\Scan;
 use App\Services\WebsiteScanner;
 use Illuminate\Http\Request;
@@ -58,6 +59,64 @@ class CompanyApiController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    public function saveUrlLead(Request $request)
+    {
+        $request->validate([
+            'url'  => 'required|string|max:500',
+            'name' => 'required|string|max:255',
+            'scan' => 'nullable|array',
+        ]);
+
+        $user = auth()->user();
+        $url  = rtrim($request->url, '/');
+
+        // Company aus URL finden oder neu anlegen
+        $company = Company::where('website_url', $url)
+            ->orWhere('website_url', $url . '/')
+            ->first()
+            ?? Company::create([
+                'name'        => $request->name,
+                'website_url' => $url,
+                'has_website' => true,
+            ]);
+
+        // Scan-Ergebnis persistieren
+        $scan = null;
+        if (!empty($request->scan)) {
+            $allowed = array_flip([
+                'status', 'http_status', 'response_ms', 'has_ssl', 'is_mobile',
+                'cms', 'page_title', 'meta_description', 'has_contact', 'has_impressum',
+                'has_tracking', 'has_favicon', 'has_og_tags', 'has_google_maps',
+                'has_cookie_banner', 'alt_tag_ratio', 'broken_links_count',
+                'speed_rating', 'score', 'error', 'scanned_at',
+            ]);
+            $scan = Scan::create(array_merge(
+                array_intersect_key($request->input('scan'), $allowed),
+                ['company_id' => $company->id]
+            ));
+        }
+
+        // Lead anlegen (idempotent)
+        $exists = Lead::where('company_id', $company->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$exists) {
+            Lead::create([
+                'company_id' => $company->id,
+                'user_id'    => $user->id,
+                'scan_id'    => $scan?->id,
+                'status'     => 'neu',
+            ]);
+        }
+
+        return response()->json([
+            'company_id' => $company->id,
+            'created'    => !$exists,
+            'message'    => $exists ? 'Lead bereits vorhanden.' : 'Lead gespeichert.',
+        ]);
     }
 
     public function dispatchScan(Request $request, Company $company)

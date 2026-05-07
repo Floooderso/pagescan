@@ -100,7 +100,8 @@
     <div class="cookie-text">
       <div class="cookie-title">Diese Website verwendet Cookies</div>
       <p class="cookie-desc">
-        Wir setzen Cookies ein um die Nutzererfahrung zu verbessern und anonyme Statistiken zu erheben.
+        Wir verwenden ausschließlich technisch notwendige Cookies (Session, CSRF-Schutz).
+        Keine Tracking- oder Werbe-Cookies.
         <a href="/datenschutz">Datenschutzerklärung</a>
       </p>
     </div>

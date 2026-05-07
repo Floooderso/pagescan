@@ -4,14 +4,37 @@
     <div class="card" style="padding:24px; margin-bottom:20px;">
       <div style="font-weight:600; font-size:15px; margin-bottom:16px;">Unternehmen suchen</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
-        <div style="flex:1; min-width:180px;">
+        <div style="flex:1; min-width:180px; position:relative;">
           <label class="form-label">Branche / Beruf</label>
-          <select v-model="query.branche" class="input">
-            <option value="" disabled>Branche wählen...</option>
-            <option>Bäckerei</option>
-            <option>Friseur</option>
-            <option>Restaurant</option>
-          </select>
+          <input
+            v-model="query.branche"
+            class="input"
+            placeholder="Branche eingeben oder wählen…"
+            autocomplete="off"
+            @focus="brancheOpen = true"
+            @input="brancheOpen = true; brancheIndex = -1"
+            @keydown.down.prevent="brancheMove(1)"
+            @keydown.up.prevent="brancheMove(-1)"
+            @keydown.enter.prevent="branchePick()"
+            @keydown.esc="brancheOpen = false"
+            @blur="onBrancheBlur"
+          >
+          <div v-if="brancheOpen && filteredBrancheGroups.length" class="ac-dropdown" style="max-height:260px; overflow-y:auto;">
+            <template v-for="group in filteredBrancheGroups" :key="group.label">
+              <div style="padding:5px 12px 3px; font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.07em; background:var(--bg-2); position:sticky; top:0;">
+                {{ group.label }}
+              </div>
+              <div
+                v-for="option in group.options"
+                :key="option"
+                class="ac-item"
+                :class="{ 'ac-item-active': brancheFlat.indexOf(option) === brancheIndex }"
+                @mousedown.prevent="pickBranche(option)"
+              >
+                {{ option }}
+              </div>
+            </template>
+          </div>
         </div>
         <div style="flex:1; min-width:160px; position:relative;">
           <label class="form-label">Stadt</label>
@@ -241,6 +264,18 @@ export default {
       acIndex:        -1,
       stadtSuggestions: [],
       _acTimer:       null,
+      // Branche Combobox
+      brancheOpen:  false,
+      brancheIndex: -1,
+      brancheGroups: [
+        { label: 'Gesundheit & Beauty',    options: ['Friseur','Kosmetikstudio','Nagelstudio','Massagepraxis','Physiotherapie','Zahnarzt','Arztpraxis','Optiker'] },
+        { label: 'Gastronomie & Food',     options: ['Restaurant','Café','Bäckerei','Pizzeria','Imbiss','Catering'] },
+        { label: 'Handwerk & Bau',         options: ['Elektriker','Klempner','Maler','Dachdecker','Schreiner','Bauunternehmen','Fliesenleger','Heizung Sanitär'] },
+        { label: 'Kfz & Mobilität',        options: ['Autohaus','Kfz-Werkstatt','Fahrradladen'] },
+        { label: 'Handel & Dienstleistung',options: ['Blumenladen','Reinigungsservice','Umzugsunternehmen','Fotografen','Reisebüro'] },
+        { label: 'Beratung & Recht',       options: ['Steuerberater','Rechtsanwalt','Versicherung','Immobilienmakler','Unternehmensberatung'] },
+        { label: 'Bildung & Freizeit',     options: ['Fitnessstudio','Yogastudio','Nachhilfe','Fahrschule','Musikschule'] },
+      ],
       pollingActive:  false,
       _pollTimer:     null,
       filters: [
@@ -254,6 +289,16 @@ export default {
   computed: {
     filteredStaedte() {
       return this.stadtSuggestions
+    },
+    filteredBrancheGroups() {
+      const q = (this.query.branche || '').toLowerCase()
+      if (!q) return this.brancheGroups
+      return this.brancheGroups
+        .map(g => ({ ...g, options: g.options.filter(o => o.toLowerCase().includes(q)) }))
+        .filter(g => g.options.length > 0)
+    },
+    brancheFlat() {
+      return this.filteredBrancheGroups.flatMap(g => g.options)
     },
     filtered() {
       switch (this.activeFilter) {
@@ -531,6 +576,29 @@ export default {
 
     onStadtBlur() {
       setTimeout(() => { this.stadtInputOpen = false; this.acIndex = -1 }, 150)
+    },
+
+    // ── Branche Combobox ────────────────────────────────
+    brancheMove(dir) {
+      const len = this.brancheFlat.length
+      if (!len) return
+      this.brancheIndex = Math.max(-1, Math.min(len - 1, this.brancheIndex + dir))
+    },
+    branchePick() {
+      if (this.brancheIndex >= 0 && this.brancheFlat[this.brancheIndex]) {
+        this.pickBranche(this.brancheFlat[this.brancheIndex])
+      } else {
+        this.brancheOpen = false
+        this.startSearch()
+      }
+    },
+    pickBranche(option) {
+      this.query.branche = option
+      this.brancheOpen   = false
+      this.brancheIndex  = -1
+    },
+    onBrancheBlur() {
+      setTimeout(() => { this.brancheOpen = false; this.brancheIndex = -1 }, 150)
     },
 
     scoreBadge(score) {
