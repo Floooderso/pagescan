@@ -19,7 +19,13 @@ class CompanyApiController extends Controller
             'has_website', 'min_score', 'max_score', 'cms', 'has_ssl', 'is_mobile',
         ]);
 
-        $companies = Company::with(['scans' => fn($q) => $q->latest()->limit(1)])
+        $userId = auth()->id();
+
+        $companies = Company::with([
+                'scans' => fn($q) => $q->latest()->limit(1),
+                'leads' => fn($q) => $q->where('user_id', $userId),
+            ])
+            ->whereHas('leads', fn($q) => $q->where('user_id', $userId))
             ->filter($filters)
             ->latest()
             ->get()
@@ -32,6 +38,7 @@ class CompanyApiController extends Controller
                     'stadt'       => $c->stadt,
                     'website_url' => $c->website_url,
                     'has_website' => $c->has_website,
+                    'is_lead'     => $c->leads->isNotEmpty(),
                     'latest_scan' => $scan ? ['score' => $scan->score, 'speed_rating' => $scan->speed_rating] : null,
                 ];
             });

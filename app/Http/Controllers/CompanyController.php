@@ -57,7 +57,7 @@ class CompanyController extends Controller
         }
 
         Scan::create(['company_id' => $company->id, 'status' => 'pending']);
-        ScanWebsiteJob::dispatch($company->id, auth()->id());
+        ScanWebsiteJob::dispatchAfterResponse($company->id, auth()->id());
 
         return back()->with('success', 'Scan gestartet. Das Ergebnis erscheint in Kürze.');
     }

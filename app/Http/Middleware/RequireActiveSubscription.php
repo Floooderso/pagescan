@@ -32,8 +32,8 @@ class RequireActiveSubscription
             return $next($request);
         }
 
-        // Trial expired, not subscribed
-        return redirect()->route('subscription.plans')
+        // Trial expired, not subscribed — redirect to waitlist pending (subscription.plans removed)
+        return redirect()->route('waitlist.pending')
             ->with('trial_expired', true);
     }
 }

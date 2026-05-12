@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ScanWebsiteJob;
 use App\Models\Company;
+use App\Models\Scan;
 use App\Models\SavedSearch;
 use App\Services\GooglePlacesService;
 use Illuminate\Http\Request;
@@ -63,7 +65,7 @@ class SavedSearchController extends Controller
             $exists = Company::where('place_id', $place['place_id'])->exists();
             if (!$exists) {
                 $newCount++;
-                Company::create([
+                $company = Company::create([
                     'place_id'    => $place['place_id'],
                     'name'        => $place['name'],
                     'adresse'     => $place['adresse'] ?? null,
@@ -75,6 +77,12 @@ class SavedSearchController extends Controller
                     'rating'      => $place['rating'] ?? null,
                     'bewertungen' => $place['bewertungen'] ?? null,
                 ]);
+
+                // Dispatch a background scan for new companies that have a website
+                if ($company->website_url) {
+                    Scan::create(['company_id' => $company->id, 'status' => 'pending']);
+                    ScanWebsiteJob::dispatch($company->id, auth()->id());
+                }
             }
         }
 

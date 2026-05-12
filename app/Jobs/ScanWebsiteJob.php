@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\WebsiteScanner;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class ScanWebsiteJob implements ShouldQueue
 {
@@ -28,19 +29,40 @@ class ScanWebsiteJob implements ShouldQueue
             return;
         }
 
-        $scan = Scan::where('company_id', $this->companyId)
-            ->whereIn('status', ['pending', 'running'])
-            ->latest()
-            ->first();
+        $user = User::find($this->userId);
+
+        // Atomically claim the pending scan: lock the row and immediately mark it
+        // as 'running' inside one transaction so no other job can pick it up.
+        $scan = DB::transaction(function () use ($user) {
+            $s = Scan::where('company_id', $this->companyId)
+                ->whereIn('status', ['pending', 'running'])
+                ->lockForUpdate()
+                ->latest()
+                ->first();
+
+            if (!$s) {
+                return null;
+            }
+
+            // Defense-in-depth quota guard inside the lock so concurrent jobs
+            // cannot both pass the quota check for the same user.
+            if ($user) {
+                $limit = User::effectiveLimit($user);
+                if ($limit !== null && $user->scans_this_month >= $limit) {
+                    $s->update(['status' => 'failed', 'error' => 'quota_exceeded']);
+                    return null;
+                }
+            }
+
+            $s->update(['status' => 'running']);
+            return $s;
+        });
 
         if (!$scan) {
             return;
         }
 
-        $scan->update(['status' => 'running']);
-
         try {
-            $user    = User::find($this->userId);
             $weights = $user?->getScoreWeights() ?? [];
             $result  = (new WebsiteScanner($weights))->scan($company->website_url);
 

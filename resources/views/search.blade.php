@@ -3,8 +3,8 @@
 
     <div class="page-header">
       <div>
-        <div class="page-title" x-text="tab === 'search' ? 'Unternehmenssuche' : 'URL-Scanner'"></div>
-        <div class="page-subtitle" x-text="tab === 'search' ? 'Unternehmen via Google Places finden und Websites scannen' : 'Beliebige Website direkt analysieren'"></div>
+        <div class="page-title" x-text="tab === 'search' ? 'Business Search' : 'URL Scanner'"></div>
+        <div class="page-subtitle" x-text="tab === 'search' ? 'Find businesses via Google Places and scan their websites' : 'Analyze any website directly'"></div>
       </div>
 
       <!-- Tab-Switcher -->
@@ -15,7 +15,7 @@
           :class="tab === 'search' ? 'btn-primary' : ''"
           style="border:none; font-size:12px;"
         >
-          Unternehmenssuche
+          Business Search
         </button>
         <button
           @click="tab='url'"
@@ -23,7 +23,7 @@
           :class="tab === 'url' ? 'btn-primary' : ''"
           style="border:none; font-size:12px;"
         >
-          URL direkt scannen
+          Scan URL Directly
         </button>
       </div>
     </div>

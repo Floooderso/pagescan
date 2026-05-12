@@ -86,7 +86,7 @@ export default {
       this.loading = true
       const params = new URLSearchParams(window.location.search)
       const res = await axios.get(`/api/companies?${params}`)
-      this.companies = res.data.map(c => ({ ...c, lead_created: false }))
+      this.companies = res.data.map(c => ({ ...c, lead_created: c.is_lead }))
       this.loading = false
     },
 

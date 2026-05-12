@@ -37,6 +37,7 @@
     </div>
 
     {{-- Passwort ändern --}}
+    @if(auth()->user()->password)
     <div class="card" style="padding:28px; margin-bottom:20px;">
       <div style="font-weight:600; font-size:14px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border);">
         Passwort ändern
@@ -65,6 +66,7 @@
         <button type="submit" class="btn btn-primary">Passwort ändern</button>
       </form>
     </div>
+    @endif
 
     {{-- Konto löschen --}}
     <div class="card" style="padding:28px; border-color: rgba(220,38,38,0.25);">

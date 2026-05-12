@@ -34,12 +34,11 @@ class DashboardController extends Controller
             default                   => 'Guten Tag',
         };
 
-        $user       = Auth::user();
-        $rawLimit   = (method_exists($user, 'subscribed') && $user->subscribed())
-                        ? (int) $user->scans_limit
-                        : 10;
-        $scanLimit  = $rawLimit; // 0 = unlimited
-        $scanUsed   = (int) ($user->scans_this_month ?? 0);
+        $user        = Auth::user();
+        // Use the unified effectiveLimit method (null = unlimited)
+        $effectiveLimit = User::effectiveLimit($user);
+        $scanLimit   = $effectiveLimit ?? 0; // 0 used as "unlimited" in view
+        $scanUsed    = (int) ($user->scans_this_month ?? 0);
         $scanPercent = ($scanLimit > 0)
             ? min(100, (int) round($scanUsed / $scanLimit * 100))
             : 0;

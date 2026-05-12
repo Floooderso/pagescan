@@ -3,6 +3,11 @@
 
 Danke für deine Registrierung. PageScan hilft dir dabei, lokale Unternehmen mit verbesserungswürdigem Web-Auftritt zu finden — perfekte Leads für deine Webdesign- oder SEO-Agentur.
 
+@if($user->isApproved())
+## Dein Zugang ist sofort aktiv!
+
+Du hast einen der ersten kostenlosen Plätze erhalten — herzlichen Glückwunsch!
+
 ## So geht's los
 
 1. **Suche starten** – Branche und Stadt eingeben, fertig
@@ -13,7 +18,14 @@ Danke für deine Registrierung. PageScan hilft dir dabei, lokale Unternehmen mit
 Zum Dashboard
 @endcomponent
 
-**Dein kostenloser Trial:** 10 Scans kostenlos, keine Kreditkarte nötig.
+@else
+## Du stehst auf der Warteliste
+
+Dein Account wurde erfolgreich erstellt. Wir prüfen Anmeldungen manuell und schalten dich bald frei.
+
+Du erhältst eine weitere E-Mail, sobald dein Zugang aktiviert wurde. Kein weiteres Zutun nötig.
+
+@endif
 
 Wenn du Fragen hast, antworte einfach auf diese E-Mail.
 

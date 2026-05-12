@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
@@ -33,25 +34,42 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'trial_ends_at' => now()->addDays(14),
-            'scans_limit'   => 10,
-        ]);
+        // Determine waitlist status atomically: first 25 registrations get free tier + immediate approval.
+        $user = DB::transaction(function () use ($request) {
+            // Lock the approved-count row to prevent race conditions
+            $approvedCount = User::where('waitlist_status', 'approved')
+                ->lockForUpdate()
+                ->count();
+
+            $isFree        = $approvedCount < User::FREE_TIER_LIMIT;
+            $status        = $isFree ? 'approved' : 'waiting';
+            $approvedAt    = $isFree ? now() : null;
+
+            return User::create([
+                'name'             => $request->name,
+                'email'            => $request->email,
+                'password'         => Hash::make($request->password),
+                'scans_limit'      => 100,
+                'waitlist_status'  => $status,
+                'is_free_tier'     => $isFree,
+                'approved_at'      => $approvedAt,
+            ]);
+        });
 
         event(new Registered($user));
-
         Auth::login($user);
-
         Mail::to($user->email)->queue(new WelcomeMail($user));
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirect approved users straight to dashboard; waitlisted users see pending page
+        if ($user->isApproved()) {
+            return redirect(route('dashboard', absolute: false));
+        }
+
+        return redirect()->route('waitlist.pending');
     }
 }

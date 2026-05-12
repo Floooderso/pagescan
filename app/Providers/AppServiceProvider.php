@@ -12,6 +12,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer(['layouts.app', 'subscription.plans'], TrialBannerComposer::class);
+        // Inject waitlist banner data into the main app layout
+        View::composer('layouts.app', TrialBannerComposer::class);
     }
 }

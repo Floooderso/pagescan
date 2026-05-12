@@ -61,10 +61,10 @@
             </a>
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px;">
               <span :class="result.has_ssl ? 'badge-green' : 'badge-red'" style="font-size:11px;">
-                {{ result.has_ssl ? '🔒 SSL aktiv' : '⚠️ Kein SSL' }}
+                {{ result.has_ssl ? 'SSL aktiv' : 'Kein SSL' }}
               </span>
               <span :class="result.is_mobile ? 'badge-green' : 'badge-red'" style="font-size:11px;">
-                {{ result.is_mobile ? '📱 Mobil OK' : '📱 Nicht mobil' }}
+                {{ result.is_mobile ? 'Mobil OK' : 'Nicht mobil' }}
               </span>
               <span v-if="result.cms" class="badge-gray" style="font-size:11px;">{{ result.cms }}</span>
               <span v-if="result.speed_rating" :class="speedBadge" style="font-size:11px;">{{ result.speed_rating }}</span>

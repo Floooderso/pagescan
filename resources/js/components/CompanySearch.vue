@@ -11,6 +11,7 @@
             class="input"
             placeholder="Branche eingeben oder wählen…"
             autocomplete="off"
+            style="padding-right:28px;"
             @focus="brancheOpen = true"
             @input="brancheOpen = true; brancheIndex = -1"
             @keydown.down.prevent="brancheMove(1)"
@@ -19,6 +20,12 @@
             @keydown.esc="brancheOpen = false"
             @blur="onBrancheBlur"
           >
+          <button
+            v-if="query.branche"
+            @mousedown.prevent="query.branche = ''; brancheOpen = false"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-3); font-size:14px; line-height:1; padding:0;"
+            tabindex="-1"
+          >✕</button>
           <div v-if="brancheOpen && filteredBrancheGroups.length" class="ac-dropdown" style="max-height:260px; overflow-y:auto;">
             <template v-for="group in filteredBrancheGroups" :key="group.label">
               <div style="padding:5px 12px 3px; font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.07em; background:var(--bg-2); position:sticky; top:0;">
@@ -356,8 +363,11 @@ export default {
 
         this.companies = found.map(c => ({
           ...c,
-          scan_status:  c.has_website ? 'pending' : null,
-          scan:         null,
+          // Prefer the server-provided scan_status (already-done or in-progress
+          // scans are returned directly by the API). Only fall back to 'pending'
+          // for companies that have a website but no status yet.
+          scan_status:  c.scan_status !== undefined ? c.scan_status : (c.has_website ? 'pending' : null),
+          scan:         c.scan ?? null,
           lead_created: false,
         }))
 
@@ -449,8 +459,9 @@ export default {
 
         const newEntries = found.map(c => ({
           ...c,
-          scan_status:  c.has_website ? 'pending' : null,
-          scan:         null,
+          // Same server-aware mapping as startSearch().
+          scan_status:  c.scan_status !== undefined ? c.scan_status : (c.has_website ? 'pending' : null),
+          scan:         c.scan ?? null,
           lead_created: false,
         }))
 

@@ -2,13 +2,13 @@
   <div class="page">
     <div class="page-header">
       <div>
-        <div class="page-title">Unternehmen</div>
-        <div class="page-subtitle">Alle gespeicherten Unternehmen aus bisherigen Suchen</div>
+        <div class="page-title">Companies</div>
+        <div class="page-subtitle">All saved businesses from previous searches</div>
       </div>
       <div style="display:flex; gap:8px;">
         <a href="/companies/export" class="btn" id="companies-export-btn">CSV Export</a>
-        <a href="/search" class="btn btn-primary">Neue Suche</a>
-        <a href="/companies/create" class="btn">Manuell hinzufügen</a>
+        <a href="/search" class="btn btn-primary">New Search</a>
+        <a href="/companies/create" class="btn">Add Manually</a>
       </div>
     </div>
 
@@ -29,7 +29,7 @@
           window.dispatchEvent(new Event('company-filter-changed'));
         },
         get activePills() {
-          const map = { search:'Suche', min_score:'Min Score', max_score:'Max Score', cms:'CMS', has_ssl:'Nur SSL', is_mobile:'Nur Mobil', has_website:'Hat Website' };
+          const map = { search:'Search', min_score:'Min Score', max_score:'Max Score', cms:'CMS', has_ssl:'SSL Only', is_mobile:'Mobile Only', has_website:'Has Website' };
           const out = [];
           for (const [k, label] of Object.entries(map)) {
             const v = this.params.get(k);
@@ -46,7 +46,7 @@
           type="text"
           class="input"
           style="max-width:300px;"
-          placeholder="Name, Branche, Stadt, Website..."
+          placeholder="Name, Industry, City, Website..."
           :value="get('search')"
           @input="set('search', $event.target.value)"
         >

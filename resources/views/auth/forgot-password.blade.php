@@ -1,25 +1,38 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-    </div>
+    <p style="font-size:14px; color:var(--text-2); margin-bottom:20px; line-height:1.6;">
+        Passwort vergessen? Kein Problem. Gib deine E-Mail-Adresse ein und wir schicken dir einen Link zum Zurücksetzen.
+    </p>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if(session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+    @endif
 
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div style="margin-bottom:16px;">
+            <label for="email" class="form-label">E-Mail-Adresse</label>
+            <input
+                id="email"
+                type="email"
+                name="email"
+                class="input"
+                value="{{ old('email') }}"
+                required
+                autofocus
+                autocomplete="email"
+            >
+            @error('email')
+                <p style="color:#ef4444; font-size:12px; margin-top:4px;">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+            Link zum Zurücksetzen senden
+        </button>
     </form>
+
+    <div style="text-align:center; margin-top:16px;">
+        <a href="{{ route('login') }}" style="font-size:13px; color:var(--text-3);">← Zurück zum Login</a>
+    </div>
 </x-guest-layout>

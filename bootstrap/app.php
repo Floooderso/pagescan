@@ -13,9 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin'         => \App\Http\Middleware\RequireAdmin::class,
-            'scan.quota'    => \App\Http\Middleware\CheckScanQuota::class,
-            'subscription'  => \App\Http\Middleware\RequireActiveSubscription::class,
+            'admin'        => \App\Http\Middleware\RequireAdmin::class,
+            'scan.quota'   => \App\Http\Middleware\CheckScanQuota::class,
+            'approved'     => \App\Http\Middleware\RequireApprovedUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

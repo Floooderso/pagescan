@@ -204,6 +204,146 @@
         @endif
       </div>
     </div>
+
+    <!-- Karte 3 + 4: DSGVO & Sicherheit -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;" class="detail-grid">
+
+      <!-- Karte 3: DSGVO & Rechtssicherheit -->
+      <div class="card" style="padding:24px;">
+        <div style="font-weight:600; font-size:14px; margin-bottom:16px;">DSGVO & Rechtssicherheit</div>
+
+        {{-- Google Fonts --}}
+        <div class="detail-row">
+          <span class="detail-label">Google Fonts</span>
+          @if($scan->google_fonts_source === 'external')
+            <span class="badge-red">Extern geladen ⚠ Abmahngefahr</span>
+          @elseif($scan->google_fonts_source === 'local')
+            <span class="badge-green">Lokal gehostet</span>
+          @else
+            <span class="badge-gray">Nicht erkannt</span>
+          @endif
+        </div>
+
+        {{-- Cookie-Banner --}}
+        <div class="detail-row">
+          <span class="detail-label">Cookie-Banner</span>
+          @if($scan->cookie_banner_status === 'found')
+            @if($scan->cookie_banner_tool)
+              <span class="badge-green">Gefunden: {{ $scan->cookie_banner_tool }}</span>
+            @else
+              <span class="badge-green">Gefunden</span>
+            @endif
+          @else
+            <span class="badge-red">Kein Banner gefunden</span>
+          @endif
+        </div>
+
+        {{-- Impressum --}}
+        <div class="detail-row">
+          <span class="detail-label">Impressum</span>
+          @if($scan->impressum_location === 'menu')
+            <span class="badge-green">Im Menü</span>
+          @elseif($scan->impressum_location === 'footer')
+            <span class="badge-yellow">Nur im Footer</span>
+          @elseif($scan->impressum_location === 'found')
+            <span class="badge-yellow">Gefunden (Position unklar)</span>
+          @else
+            <span class="badge-red">Nicht gefunden</span>
+          @endif
+        </div>
+
+        {{-- Datenschutz --}}
+        <div class="detail-row">
+          <span class="detail-label">Datenschutz</span>
+          @if($scan->datenschutz_location === 'menu')
+            <span class="badge-green">Im Menü</span>
+          @elseif($scan->datenschutz_location === 'footer')
+            <span class="badge-yellow">Nur im Footer</span>
+          @elseif($scan->datenschutz_location === 'found')
+            <span class="badge-yellow">Gefunden (Position unklar)</span>
+          @else
+            <span class="badge-red">Nicht gefunden</span>
+          @endif
+        </div>
+
+        {{-- robots.txt --}}
+        @if($scan->robots_txt_exists !== null)
+        <div class="detail-row">
+          <span class="detail-label">robots.txt</span>
+          @if(!$scan->robots_txt_exists)
+            <span class="badge-yellow">Nicht gefunden</span>
+          @elseif($scan->robots_txt_disallow)
+            <span class="badge-red">Vorhanden — sperrt alle Crawler</span>
+          @else
+            <span class="badge-green">Vorhanden</span>
+          @endif
+        </div>
+        @endif
+      </div>
+
+      <!-- Karte 4: Sicherheit & Performance -->
+      <div class="card" style="padding:24px;">
+        <div style="font-weight:600; font-size:14px; margin-bottom:16px;">Sicherheit & Performance</div>
+
+        @php
+          $secScore   = $scan->security_headers_score ?? 0;
+          $secDetail  = is_string($scan->security_headers_detail) ? (json_decode($scan->security_headers_detail, true) ?? []) : ($scan->security_headers_detail ?? []);
+          $outdated   = is_string($scan->outdated_tech) ? (json_decode($scan->outdated_tech, true) ?? []) : ($scan->outdated_tech ?? []);
+          $secBadge   = $secScore >= 4 ? 'badge-green' : ($secScore >= 2 ? 'badge-yellow' : 'badge-red');
+        @endphp
+
+        {{-- Security Headers Score --}}
+        <div class="detail-row">
+          <span class="detail-label">Security Headers</span>
+          <span class="{{ $secBadge }}">{{ $secScore }} / 4 Headers</span>
+        </div>
+
+        {{-- Einzelne Header --}}
+        @if(!empty($secDetail))
+          @foreach($secDetail as $header => $present)
+          <div class="detail-row">
+            <span class="detail-label" style="padding-left:8px;">{{ $header }}</span>
+            <span class="{{ $present ? 'badge-green' : 'badge-red' }}">{{ $present ? '✓' : '✗' }}</span>
+          </div>
+          @endforeach
+        @endif
+
+        {{-- Veraltete Technologien --}}
+        @if(!empty($outdated))
+        <div class="detail-row" style="align-items:flex-start;">
+          <span class="detail-label">Veraltete Tech</span>
+          <span>
+            @foreach($outdated as $tech)
+              <span class="badge-red" style="display:block; margin-bottom:4px;">{{ $tech }}</span>
+            @endforeach
+          </span>
+        </div>
+        @endif
+
+        {{-- Core Web Vitals --}}
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+          <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Core Web Vitals</div>
+
+          @php
+            $vitalBadge = fn($v) => match($v) { 'gut' => 'badge-green', 'mittel' => 'badge-yellow', 'schlecht' => 'badge-red', default => 'badge-gray' };
+          @endphp
+
+          <div class="detail-row">
+            <span class="detail-label">TTFB</span>
+            <span class="{{ $vitalBadge($scan->ttfb_score) }}">{{ $scan->ttfb_score ?? '–' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">LCP</span>
+            <span class="{{ $vitalBadge($scan->lcp_score) }}">{{ $scan->lcp_score ?? '–' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">CLS</span>
+            <span class="{{ $vitalBadge($scan->cls_score) }}">{{ $scan->cls_score ?? '–' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     @else
     <div class="card" style="padding:32px; text-align:center; color:var(--text-3); font-size:13px; margin-bottom:16px;">
       Noch kein Scan vorhanden.

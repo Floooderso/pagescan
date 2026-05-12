@@ -13,7 +13,9 @@
   <meta name="twitter:card"       content="summary_large_image">
   <meta name="twitter:title"      content="PageScan — Website-Scanner für Agenturen">
   <meta name="twitter:description"content="Branche und Stadt eingeben — PageScan scannt Websites live und liefert dir täglich neue Leads.">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta property="og:image" content="{{ url('/og-image.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -98,6 +100,169 @@
       .steps-row    { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── PageScan Demo Animation ───────────────────────── */
+    #ps-demo-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+      text-align: left;
+      font-family: 'Geist', system-ui, sans-serif;
+      transition: opacity 0.5s ease;
+    }
+    .ps-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e4e4e7;
+    }
+    .ps-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .ps-titlebar-text {
+      margin-left: 8px;
+      font-size: 11px;
+      color: #a1a1aa;
+      font-weight: 500;
+    }
+    /* Scenes Wrapper — feste Höhe, kein Layout-Shift */
+    #ps-scenes-wrap {
+      position: relative;
+      min-height: 280px;
+    }
+    /* Scene 1 — Suchformular */
+    #ps-scene-form {
+      position: absolute;
+      top: 0; left: 0; width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .ps-form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .ps-field { flex: 1; }
+    .ps-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #71717a;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .ps-field input {
+      width: 100%;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #09090b;
+      background: #fff;
+      outline: none;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .ps-field input:focus { border-color: #a1a1aa; }
+    #ps-btn-search {
+      margin-top: 4px;
+      background: #18181b;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: default;
+      transition: background 0.3s;
+      font-family: inherit;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    #ps-btn-search.ps-btn-active { background: #3f3f46; }
+    /* Scene 2 — Loader */
+    #ps-scene-loader {
+      position: absolute;
+      top: 0; left: 0; width: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 40px 24px;
+      box-sizing: border-box;
+    }
+    .ps-spinner {
+      width: 24px; height: 24px;
+      border: 2px solid #e4e4e7;
+      border-top-color: #18181b;
+      border-radius: 50%;
+      animation: ps-spin 0.75s linear infinite;
+    }
+    @keyframes ps-spin { to { transform: rotate(360deg); } }
+    #ps-loader-text { font-size: 13px; color: #71717a; }
+    /* Scene 3 — Tabelle */
+    #ps-scene-table {
+      position: absolute;
+      top: 0; left: 0; width: 100%;
+      display: none;
+    }
+    .ps-table-header {
+      display: grid;
+      grid-template-columns: 1fr 90px 90px 72px;
+      padding: 8px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e4e4e7;
+    }
+    .ps-table-header span {
+      font-size: 10px;
+      font-weight: 600;
+      color: #a1a1aa;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .ps-table-header span:not(:first-child) { text-align: center; }
+    .ps-row {
+      display: grid;
+      grid-template-columns: 1fr 90px 90px 72px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f4f4f5;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s;
+    }
+    .ps-row:last-child { border-bottom: none; }
+    .ps-row:hover { background: #f9fafb; }
+    .ps-row-name { font-size: 13px; font-weight: 500; color: #18181b; }
+    .ps-row-sub { font-size: 11px; color: #a1a1aa; margin-top: 1px; }
+    .ps-row-cms { font-size: 12px; color: #71717a; text-align: center; }
+    .ps-row-problem { font-size: 11px; color: #71717a; text-align: center; }
+    .ps-score-wrap { text-align: center; }
+    .ps-score {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: ui-monospace, monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .ps-score-red    { background: #fef2f2; color: #ef4444; }
+    .ps-score-yellow { background: #fffbeb; color: #f59e0b; }
+    .ps-score-green  { background: #f0fdf4; color: #16a34a; }
+    .ps-score-none   { background: #f4f4f5; color: #a1a1aa; }
+    /* Mobile */
+    @media (max-width: 520px) {
+      .ps-form-row { flex-direction: column; }
+      .ps-table-header { grid-template-columns: 1fr 0 72px; }
+      .ps-table-header span:nth-child(2),
+      .ps-table-header span:nth-child(3) { display: none; }
+      .ps-row { grid-template-columns: 1fr 0 72px; }
+      .ps-row-cms { display: none; }
+      .ps-row-problem { display: none; }
+    }
   </style>
 </head>
 <body class="bg-white text-zinc-900 antialiased" style="font-family:'Geist',system-ui,sans-serif;">
@@ -106,10 +271,9 @@
   <nav class="sticky top-0 z-50 bg-white border-b border-zinc-100 flex items-center gap-2 px-8 h-14">
     <span class="font-semibold text-sm text-zinc-900 mr-4">PageScan</span>
     <a href="#schritte" class="text-sm text-zinc-400 hover:text-zinc-700 px-3 py-1.5 rounded-md transition-colors">So funktioniert's</a>
-    <a href="#preise"   class="text-sm text-zinc-400 hover:text-zinc-700 px-3 py-1.5 rounded-md transition-colors">Preise</a>
     <div class="flex-1"></div>
     <a href="{{ route('login') }}"    class="text-sm text-zinc-500 hover:text-zinc-900 px-4 py-1.5 rounded-md border border-zinc-200 hover:border-zinc-400 transition-colors mr-2">Anmelden</a>
-    <a href="{{ route('register') }}" class="text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-700 px-4 py-1.5 rounded-md transition-colors">Kostenlos testen</a>
+    <a href="{{ route('register') }}" class="text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-700 px-4 py-1.5 rounded-md transition-colors">Beta-Zugang anfragen</a>
   </nav>
 
   {{-- ── 2. HERO ── --}}
@@ -118,23 +282,273 @@
       <h1 class="hero-item opacity-0 translate-y-3 text-6xl font-bold tracking-tight leading-[1.05] text-zinc-900">
         Finde Unternehmen mit<br>schlechten Websites.
       </h1>
-      <p class="hero-item opacity-0 translate-y-3 mt-6 text-lg text-zinc-500 leading-relaxed max-w-xl mx-auto">
-        Branche und Stadt eingeben — PageScan findet via Google Places alle passenden Unternehmen, scannt deren Websites live und bewertet sie. Täglich automatisch.
-      </p>
-      <div class="hero-item opacity-0 translate-y-3 mt-10 flex items-center justify-center gap-4 flex-wrap">
-        <a href="{{ route('register') }}"
-           class="bg-zinc-900 hover:bg-zinc-700 text-white text-sm font-medium px-6 py-3 rounded-lg transition-colors">
-          10 Scans gratis starten
-        </a>
-        <a href="#schritte" class="text-sm text-zinc-400 hover:text-zinc-600 transition-colors">
-          So funktioniert's →
-        </a>
-      </div>
-      <p class="hero-item opacity-0 translate-y-3 mt-4 text-xs text-zinc-400">
-        Keine Kreditkarte nötig · 14 Tage kostenlos testen
-      </p>
     </div>
   </section>
+
+  <div style="background:#f9fafb; border-top:1px solid #e4e4e7; border-bottom:1px solid #e4e4e7; padding:12px 24px;">
+    <div style="max-width:1152px; margin:0 auto; display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap;">
+      <span style="font-size:12px; color:#71717a; display:flex; align-items:center; gap:6px;">
+        <span style="color:#16a34a; font-weight:600;">✓</span> Aktuell in der Beta
+      </span>
+      <span style="color:#e4e4e7;">|</span>
+      <span style="font-size:12px; color:#71717a; display:flex; align-items:center; gap:6px;">
+        <span style="color:#16a34a; font-weight:600;">✓</span> Aktuell kostenlos in der Beta
+      </span>
+      <span style="color:#e4e4e7;">|</span>
+      <span style="font-size:12px; color:#71717a; display:flex; align-items:center; gap:6px;">
+        <span style="color:#16a34a; font-weight:600;">✓</span> Keine Kreditkarte nötig
+      </span>
+      <span style="color:#e4e4e7;">|</span>
+      <span style="font-size:12px; color:#71717a; display:flex; align-items:center; gap:6px;">
+        <span style="color:#16a34a; font-weight:600;">✓</span> Freischaltung per E-Mail
+      </span>
+    </div>
+  </div>
+
+  {{-- ── 5b. ANIMIERTE DEMO ── --}}
+  <div class="py-20 border-t border-zinc-100">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-4">Live-Demo</div>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight mb-10">
+        Von Suchbegriff zu fertiger Lead-Liste — in unter 60 Sekunden
+      </h2>
+
+      <div id="ps-demo-wrap">
+        <!-- Titlebar -->
+        <div class="ps-titlebar">
+          <span class="ps-dot" style="background:#ef4444;"></span>
+          <span class="ps-dot" style="background:#f59e0b;"></span>
+          <span class="ps-dot" style="background:#22c55e;"></span>
+          <span class="ps-titlebar-text">Friseure München — PageScan</span>
+        </div>
+
+        <div id="ps-scenes-wrap">
+        <!-- Szene 1: Suchformular -->
+        <div id="ps-scene-form">
+          <div class="ps-form-row">
+            <div class="ps-field">
+              <label>Branche</label>
+              <input type="text" id="ps-input-branche" placeholder="z.B. Friseur" readonly>
+            </div>
+            <div class="ps-field">
+              <label>Stadt</label>
+              <input type="text" id="ps-input-stadt" placeholder="z.B. München" readonly>
+            </div>
+            <button id="ps-btn-search" type="button">Suchen &amp; Scannen</button>
+          </div>
+        </div>
+
+        <!-- Szene 2: Ladestate -->
+        <div id="ps-scene-loader">
+          <div class="ps-spinner"></div>
+          <span id="ps-loader-text">Google Places wird abgefragt...</span>
+        </div>
+
+        <!-- Szene 3: Ergebnistabelle -->
+        <div id="ps-scene-table">
+          <div class="ps-table-header">
+            <span>Unternehmen</span>
+            <span>CMS</span>
+            <span>Problem</span>
+            <span>Score</span>
+          </div>
+          <div class="ps-row" data-demo-score="28" data-score-class="ps-score-red">
+            <div><div class="ps-row-name">Salon Bella Vista</div><div class="ps-row-sub">WordPress</div></div>
+            <div class="ps-row-cms">WordPress</div>
+            <div class="ps-row-problem">kein SSL</div>
+            <div class="ps-score-wrap"><span class="ps-score ps-score-red">0</span></div>
+          </div>
+          <div class="ps-row" data-demo-score="" data-score-class="ps-score-none">
+            <div><div class="ps-row-name">Hairstyle by Marco</div><div class="ps-row-sub">—</div></div>
+            <div class="ps-row-cms">—</div>
+            <div class="ps-row-problem">keine Website</div>
+            <div class="ps-score-wrap"><span class="ps-score ps-score-none">—</span></div>
+          </div>
+          <div class="ps-row" data-demo-score="41" data-score-class="ps-score-yellow">
+            <div><div class="ps-row-name">Friseur am Dom</div><div class="ps-row-sub">Wix</div></div>
+            <div class="ps-row-cms">Wix</div>
+            <div class="ps-row-problem">kein Impressum</div>
+            <div class="ps-score-wrap"><span class="ps-score ps-score-yellow">0</span></div>
+          </div>
+          <div class="ps-row" data-demo-score="55" data-score-class="ps-score-yellow">
+            <div><div class="ps-row-name">HairLab Studio</div><div class="ps-row-sub">Squarespace</div></div>
+            <div class="ps-row-cms">Squarespace</div>
+            <div class="ps-row-problem">nicht mobil</div>
+            <div class="ps-score-wrap"><span class="ps-score ps-score-yellow">0</span></div>
+          </div>
+          <div class="ps-row" data-demo-score="82" data-score-class="ps-score-green">
+            <div><div class="ps-row-name">Coiffeur Deluxe</div><div class="ps-row-sub">TYPO3</div></div>
+            <div class="ps-row-cms">TYPO3</div>
+            <div class="ps-row-problem">✓ Alles OK</div>
+            <div class="ps-score-wrap"><span class="ps-score ps-score-green">0</span></div>
+          </div>
+        </div>
+        </div><!-- /ps-scenes-wrap -->
+      </div><!-- /#ps-demo-wrap -->
+
+      <script>
+      (function() {
+        var wrap    = document.getElementById('ps-demo-wrap');
+        var scForm  = document.getElementById('ps-scene-form');
+        var scLoad  = document.getElementById('ps-scene-loader');
+        var scTable = document.getElementById('ps-scene-table');
+        var inBranche = document.getElementById('ps-input-branche');
+        var inStadt   = document.getElementById('ps-input-stadt');
+        var btnSearch = document.getElementById('ps-btn-search');
+        var loaderTxt = document.getElementById('ps-loader-text');
+        var rows      = document.querySelectorAll('#ps-scene-table .ps-row');
+
+        var timers = [];
+        var rafIds = [];
+        var isRunning = false;
+
+        function t(fn, ms) {
+          var id = setTimeout(fn, ms);
+          timers.push(id);
+          return id;
+        }
+
+        function clearAll() {
+          timers.forEach(function(id) { clearTimeout(id); });
+          timers = [];
+          rafIds.forEach(function(id) { cancelAnimationFrame(id); });
+          rafIds = [];
+        }
+
+        function typeIn(el, text, cb) {
+          var i = 0;
+          function tick() {
+            if (!isRunning) return;
+            if (i < text.length) {
+              el.value += text[i++];
+              t(tick, 80);
+            } else if (cb) {
+              t(function() { if (isRunning) cb(); }, 120);
+            }
+          }
+          tick();
+        }
+
+        function easeOut(p) { return 1 - Math.pow(1 - p, 4); }
+
+        function animScore(el, target) {
+          if (!target) return;
+          var start = null;
+          function raf(now) {
+            if (!isRunning) return;
+            if (!start) start = now;
+            var p = Math.min((now - start) / 500, 1);
+            el.textContent = Math.round(easeOut(p) * target);
+            if (p < 1) rafIds.push(requestAnimationFrame(raf));
+            else el.textContent = target;
+          }
+          rafIds.push(requestAnimationFrame(raf));
+        }
+
+        function resetAll() {
+          wrap.style.opacity = '1';
+          inBranche.value = '';
+          inStadt.value   = '';
+          btnSearch.classList.remove('ps-btn-active');
+          scForm.style.display  = 'block';
+          scLoad.style.display  = 'none';
+          scTable.style.display = 'none';
+          rows.forEach(function(row) {
+            row.style.opacity   = '0';
+            row.style.transform = 'translateY(8px)';
+            var scoreEl = row.querySelector('.ps-score');
+            var target  = row.dataset.demoScore;
+            if (scoreEl && target) scoreEl.textContent = '0';
+          });
+          loaderTxt.textContent = 'Google Places wird abgefragt...';
+        }
+
+        function runDemo() {
+          if (!isRunning) return;
+          resetAll();
+
+          /* Szene 1: Tippen */
+          t(function() {
+            typeIn(inBranche, 'Friseur', function() {
+              typeIn(inStadt, 'München', function() {
+                btnSearch.classList.add('ps-btn-active');
+
+                /* Szene 2: Loader einblenden */
+                t(function() {
+                  if (!isRunning) return;
+                  scForm.style.display  = 'none';
+                  scLoad.style.display  = 'flex';
+                }, 400);
+
+                t(function() {
+                  if (!isRunning) return;
+                  loaderTxt.textContent = '12 Websites werden gescannt...';
+                }, 1800);
+
+                /* Szene 3: Tabelle */
+                t(function() {
+                  if (!isRunning) return;
+                  scLoad.style.display  = 'none';
+                  scTable.style.display = 'block';
+
+                  rows.forEach(function(row, i) {
+                    t(function() {
+                      row.style.opacity   = '1';
+                      row.style.transform = 'translateY(0)';
+                      var scoreEl = row.querySelector('.ps-score');
+                      var target  = parseInt(row.dataset.demoScore, 10);
+                      if (scoreEl && target) animScore(scoreEl, target);
+                    }, i * 400);
+                  });
+
+                  /* Szene 4: Fade-out → Loop */
+                  t(function() {
+                    wrap.style.opacity = '0';
+                    t(function() {
+                      if (isRunning) runDemo();
+                    }, 600);
+                  }, 4800);
+
+                }, 3200);
+              });
+            });
+          }, 300);
+        }
+
+        function startDemo() {
+          if (isRunning) return;
+          isRunning = true;
+          runDemo();
+        }
+
+        function stopDemo() {
+          isRunning = false;
+          clearAll();
+        }
+
+        /* IntersectionObserver: Demo nur im Viewport laufen lassen */
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) {
+              if (e.isIntersecting) startDemo();
+              else stopDemo();
+            });
+          }, { threshold: 0.25 });
+          io.observe(wrap);
+        } else {
+          startDemo();
+        }
+      })();
+      </script>
+
+      <p class="mt-6 text-xs text-zinc-400">
+        Animation zeigt reale Produktfunktion ·
+        <a href="{{ route('register') }}" class="text-zinc-600 hover:text-zinc-900 underline underline-offset-2">
+          Selbst ausprobieren →
+        </a>
+      </p>
+    </div>
+  </div>
 
   {{-- ── 3. STATS ── --}}
   <div class="border-t border-b border-zinc-200">
@@ -143,19 +557,19 @@
 
         <div class="px-12 py-10">
           <div class="text-5xl font-bold text-zinc-900 tracking-tight leading-none">
-            <span data-counter data-value="200">0</span>
-            <span class="text-2xl text-zinc-400 font-normal">+</span>
+            <span data-counter data-value="60">0</span>
+            <span class="text-2xl text-zinc-400 font-normal"> Sek</span>
           </div>
-          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Scans im Starter-Plan</div>
-          <p class="text-sm text-zinc-500 mt-3">Monatliches Scan-Kontingent im günstigsten Plan</p>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Bis zur ersten Lead-Liste</div>
+          <p class="text-sm text-zinc-500 mt-3">Branche eingeben, Stadt wählen — fertige Ergebnisliste in unter einer Minute.</p>
         </div>
 
         <div class="px-12 py-10">
           <div class="text-5xl font-bold text-zinc-900 tracking-tight leading-none">
-            <span data-counter data-value="12">0</span><span>+</span>
+            <span data-counter data-value="20">0</span><span>+</span>
           </div>
-          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Erkannte Faktoren</div>
-          <p class="text-sm text-zinc-500 mt-3">SSL, Mobile, CMS, Impressum, Broken Links und mehr</p>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Scan-Kriterien pro Website</div>
+          <p class="text-sm text-zinc-500 mt-3">SSL, Mobile, Impressum, CMS, Ladezeit, Broken Links, OG-Tags und mehr.</p>
         </div>
 
         <div class="px-12 py-10">
@@ -163,7 +577,45 @@
             <span style="display:inline-block; width:8px; height:8px; background:#22c55e; border-radius:50%; margin-right:8px; vertical-align:middle; animation:pulse 2s infinite;"></span>Live
           </div>
           <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2">Echtzeitdaten via Google</div>
-          <p class="text-sm text-zinc-500 mt-3">Keine gecachten Daten, immer aktuell</p>
+          <p class="text-sm text-zinc-500 mt-3">Keine gecachten Daten. Jede Suche greift live auf Google Places zu.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {{-- ── 3b. FÜR WEN? ── --}}
+  <div class="py-20 border-t border-zinc-100">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-3">Für wen?</div>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight mb-10">
+        Gemacht für alle die aktiv akquirieren.
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+
+        <div class="border border-zinc-200 rounded-xl p-8 hover:border-zinc-400 transition-colors">
+          <div class="text-sm font-semibold text-zinc-900 mb-3">Freelancer &amp; Webdesigner</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">
+            Du arbeitest allein und brauchst einen konstanten Strom neuer Anfragen.
+            PageScan zeigt dir welche Unternehmen in deiner Region dringend eine neue Website brauchen — mit konkreten Zahlen für den Erstkontakt.
+          </p>
+          <div class="mt-6 text-xs text-zinc-400">Beta-Zugang kostenlos sichern →</div>
+        </div>
+
+        <div class="border border-zinc-900 rounded-xl p-8 bg-zinc-900 text-white">
+          <div class="text-sm font-semibold mb-3">Web- &amp; Digitalagenturen</div>
+          <p class="text-sm leading-relaxed" style="color:#a1a1aa;">
+            Dein Team braucht einen strukturierten Akquise-Prozess. Mit Watchlist, Lead-Kanban und Teamfunktionen verwaltet ihr alle Leads zentral — ohne externes CRM.
+          </p>
+          <div class="mt-6 text-xs" style="color:#71717a;">Beta-Zugang kostenlos sichern →</div>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-8 hover:border-zinc-400 transition-colors">
+          <div class="text-sm font-semibold text-zinc-900 mb-3">SEO- &amp; Marketingagenturen</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">
+            Du erkennst sofort welche Website-Mängel du beheben kannst — Missing Meta, kein Tracking, kein SSL. PageScan gibt dir den Gesprächseinstieg den kein anderes Tool liefert.
+          </p>
+          <div class="mt-6 text-xs text-zinc-400">Beta-Zugang kostenlos sichern →</div>
         </div>
 
       </div>
@@ -204,89 +656,6 @@
     </div>
   </div>
 
-  {{-- ── 5. MOCK-SCANNER ── --}}
-  <div class="py-20">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-8">Echte Ergebnisse, live gescannt</div>
-      <div class="border border-zinc-200 rounded-xl overflow-hidden bg-white" style="box-shadow:0 4px 24px rgba(0,0,0,0.05);">
-
-        {{-- Titelleiste --}}
-        <div class="px-5 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full" style="background:#ef4444;"></span>
-            <span class="w-2.5 h-2.5 rounded-full" style="background:#f59e0b;"></span>
-            <span class="w-2.5 h-2.5 rounded-full" style="background:#22c55e;"></span>
-          </div>
-          <span class="text-xs text-zinc-400 font-medium">Friseure München</span>
-          <span class="text-xs text-zinc-300">5 Ergebnisse</span>
-        </div>
-
-        {{-- Spaltenheader --}}
-        <div class="grid px-5 py-2.5 border-b border-zinc-100 bg-zinc-50" style="grid-template-columns:1fr auto auto auto;">
-          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Unternehmen</span>
-          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-24 text-center">CMS</span>
-          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-24 text-center">Probleme</span>
-          <span class="text-[11px] font-medium text-zinc-400 uppercase tracking-wider w-20 text-right">Score</span>
-        </div>
-
-        {{-- Zeilen --}}
-        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
-          <div>
-            <div class="text-sm text-zinc-800 font-medium">Salon Bella Vista</div>
-            <div class="text-xs text-zinc-400 mt-0.5">Schwabing</div>
-          </div>
-          <span class="text-xs text-zinc-400 w-24 text-center">WordPress</span>
-          <span class="text-xs text-zinc-400 w-24 text-center">kein SSL</span>
-          <span class="text-xs font-mono font-semibold bg-red-50 text-red-500 px-2 py-0.5 w-20 text-center">28/100</span>
-        </div>
-
-        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
-          <div>
-            <div class="text-sm text-zinc-800 font-medium">Hairstyle by Marco</div>
-            <div class="text-xs text-zinc-400 mt-0.5">Maxvorstadt</div>
-          </div>
-          <span class="text-xs text-zinc-400 w-24 text-center">—</span>
-          <span class="text-xs text-zinc-400 w-24 text-center">keine Website</span>
-          <span class="text-xs font-mono font-semibold bg-red-50 text-red-500 px-2 py-0.5 w-20 text-center">—</span>
-        </div>
-
-        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
-          <div>
-            <div class="text-sm text-zinc-800 font-medium">Friseur am Dom</div>
-            <div class="text-xs text-zinc-400 mt-0.5">Altstadt</div>
-          </div>
-          <span class="text-xs text-zinc-400 w-24 text-center">Wix</span>
-          <span class="text-xs text-zinc-400 w-24 text-center">kein Impressum</span>
-          <span class="text-xs font-mono font-semibold bg-amber-50 text-amber-500 px-2 py-0.5 w-20 text-center">41/100</span>
-        </div>
-
-        <div class="grid items-center px-5 py-3.5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
-          <div>
-            <div class="text-sm text-zinc-800 font-medium">HairLab Studio</div>
-            <div class="text-xs text-zinc-400 mt-0.5">Bogenhausen</div>
-          </div>
-          <span class="text-xs text-zinc-400 w-24 text-center">Squarespace</span>
-          <span class="text-xs text-zinc-400 w-24 text-center">nicht mobil</span>
-          <span class="text-xs font-mono font-semibold bg-amber-50 text-amber-500 px-2 py-0.5 w-20 text-center">55/100</span>
-        </div>
-
-        <div class="grid items-center px-5 py-3.5 hover:bg-zinc-50 transition-colors" style="grid-template-columns:1fr auto auto auto;">
-          <div>
-            <div class="text-sm text-zinc-800 font-medium">Coiffeur Deluxe</div>
-            <div class="text-xs text-zinc-400 mt-0.5">Neuhausen</div>
-          </div>
-          <span class="text-xs text-zinc-400 w-24 text-center">TYPO3</span>
-          <span class="text-xs text-zinc-400 w-24 text-center">—</span>
-          <span class="text-xs font-mono font-semibold bg-green-50 text-green-600 px-2 py-0.5 w-20 text-center">82/100</span>
-        </div>
-
-      </div>
-      <p class="mt-5 text-xs text-zinc-400 text-center">
-        Das siehst du nach deiner ersten Suche — in unter 60 Sekunden.
-        <a href="{{ route('register') }}" class="text-zinc-600 hover:text-zinc-900 underline underline-offset-2 transition-colors">Jetzt ausprobieren →</a>
-      </p>
-    </div>
-  </div>
 
   {{-- ── 6. KRITERIEN + ZITAT ── --}}
   <div class="py-20">
@@ -397,6 +766,47 @@
     </div>
   </div>
 
+  {{-- ── 7c. FEATURES ── --}}
+  <div class="py-20 border-t border-zinc-100">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-3">Funktionen</div>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight mb-10">Mehr als nur ein Scanner.</h2>
+      <div class="grid grid-cols-3 gap-6">
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">Lead-Management</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Status tracken (Neu → Kontaktiert → Angebot → Gewonnen), Priorität setzen, Notizen hinterlegen — ohne externes CRM.</p>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">Kanban-Board</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Leads per Drag &amp; Drop durch die Pipeline schieben. Kompakter Überblick über alle Phasen deiner Akquise auf einen Blick.</p>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">Watchlist &amp; Auto-Scan</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Suche einmal speichern, täglich automatisch wiederholen. Neue Unternehmen erscheinen sofort in deiner Lead-Liste.</p>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">Individueller Score</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Passe die Gewichtung der Kriterien an dein Angebot an. SEO-Agentur oder Webdesigner? Der Score passt sich dir an.</p>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">Kontakthistorie</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Wann wurde angerufen, welche E-Mail gesendet, welches Ergebnis? Alle Kontaktversuche chronologisch pro Lead gespeichert.</p>
+        </div>
+
+        <div class="border border-zinc-200 rounded-xl p-6">
+          <div class="text-sm font-semibold text-zinc-900 mb-2">CSV-Export</div>
+          <p class="text-sm text-zinc-500 leading-relaxed">Alle Leads mit Score, Kontaktdaten und Status als CSV exportieren — für eigene Auswertungen oder den Import in andere Tools.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   {{-- ── 8. FAQ ── --}}
   <div class="py-20 border-t border-zinc-100">
     <div class="max-w-6xl mx-auto px-6">
@@ -415,21 +825,21 @@
 
         <div class="border-t border-zinc-100 py-5">
           <button class="faq-btn w-full flex justify-between items-center text-left gap-4" onclick="toggleFaq(this)">
-            <span class="text-sm font-medium text-zinc-800">Kann ich jederzeit kündigen?</span>
+            <span class="text-sm font-medium text-zinc-800">Wie lange dauert die Freischaltung?</span>
             <span class="faq-icon text-zinc-300 flex-shrink-0 transition-transform duration-200">↓</span>
           </button>
           <p class="faq-answer hidden mt-3 text-sm text-zinc-500 leading-relaxed">
-            Ja, monatlich kündbar ohne Mindestlaufzeit. Nach der Kündigung behältst du Zugriff bis zum Ende des bezahlten Monats. Deine gespeicherten Leads bleiben erhalten.
+            Wir schalten Beta-Nutzer manuell frei — in der Regel innerhalb von 24 Stunden. Du bekommst eine E-Mail sobald dein Zugang aktiviert wurde.
           </p>
         </div>
 
         <div class="border-t border-zinc-100 py-5">
           <button class="faq-btn w-full flex justify-between items-center text-left gap-4" onclick="toggleFaq(this)">
-            <span class="text-sm font-medium text-zinc-800">Was passiert nach dem 14-Tage-Trial?</span>
+            <span class="text-sm font-medium text-zinc-800">Was bedeutet "kostenlos" in der Beta?</span>
             <span class="faq-icon text-zinc-300 flex-shrink-0 transition-transform duration-200">↓</span>
           </button>
           <p class="faq-answer hidden mt-3 text-sm text-zinc-500 leading-relaxed">
-            Nach 14 Tagen endet der Trial automatisch — keine Abbuchung ohne dein Zutun. Du bekommst 3 Tage vorher eine Erinnerung per E-Mail. Alle Leads und gespeicherten Suchen bleiben erhalten.
+            Während der Beta ist PageScan kostenlos — kein Trial, kein Ablaufdatum. Wir informieren dich rechtzeitig, bevor sich daran etwas ändert.
           </p>
         </div>
 
@@ -467,104 +877,24 @@
     </div>
   </div>
 
-  {{-- ── 9. PRICING ── --}}
-  <div id="preise" class="py-20">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-xs uppercase tracking-widest text-zinc-400 mb-3">Preise</div>
-      <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
-        <h2 class="text-3xl font-bold text-zinc-900 tracking-tight">Einfach. Transparent. Kündbar.</h2>
-        <p class="text-sm text-zinc-400">Alle Pläne starten mit 14 Tagen kostenlosem Trial.</p>
-      </div>
-      <div class="pricing-grid">
-
-        {{-- Starter --}}
-        <div class="plan">
-          <div class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Starter</div>
-          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
-            €29<span class="text-sm font-normal text-zinc-400">/Monat</span>
-          </div>
-          <div class="border-t border-zinc-200 my-6"></div>
-          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
-            <li><span class="text-zinc-300 mr-2">·</span>200 Scans pro Monat</li>
-            <li><span class="text-zinc-300 mr-2">·</span>1 Nutzer</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
-            <li><span class="text-zinc-300 mr-2">·</span>CSV-Export</li>
-          </ul>
-          <a href="{{ route('register') }}"
-             class="mt-8 rounded-lg border border-zinc-200 hover:border-zinc-400 text-zinc-500 hover:text-zinc-900 py-2.5 text-sm text-center transition-colors block w-full">
-            Jetzt starten
-          </a>
-        </div>
-
-        {{-- Agency (featured) --}}
-        <div class="plan plan-highlight">
-          <div class="flex items-center mb-1">
-            <span class="text-xs uppercase tracking-widest text-zinc-400">Agency</span>
-            <span class="text-[10px] bg-zinc-900 text-white px-2 py-0.5 font-semibold ml-2 rounded-full">Beliebt</span>
-          </div>
-          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
-            €79<span class="text-sm font-normal text-zinc-400">/Monat</span>
-          </div>
-          <div class="border-t border-zinc-200 my-6"></div>
-          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
-            <li><span class="text-zinc-300 mr-2">·</span>1.000 Scans pro Monat</li>
-            <li><span class="text-zinc-300 mr-2">·</span>3 Nutzer</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Team-Features</li>
-            <li><span class="text-zinc-300 mr-2">·</span>CSV-Export</li>
-          </ul>
-          <a href="{{ route('register') }}"
-             class="mt-8 rounded-lg bg-zinc-900 hover:bg-zinc-700 text-white py-2.5 text-sm text-center font-medium transition-colors block w-full">
-            14 Tage kostenlos
-          </a>
-        </div>
-
-        {{-- Pro --}}
-        <div class="plan">
-          <div class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Pro</div>
-          <div class="text-5xl font-bold text-zinc-900 tracking-tight mt-4 leading-none">
-            €149<span class="text-sm font-normal text-zinc-400">/Monat</span>
-          </div>
-          <div class="border-t border-zinc-200 my-6"></div>
-          <ul class="space-y-2.5 text-sm text-zinc-500 flex-1">
-            <li><span class="text-zinc-300 mr-2">·</span>Unbegrenzte Scans</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Bis zu 10 Nutzer</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Lead-Management</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Watchlist &amp; Auto-Scan</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Team-Features</li>
-            <li><span class="text-zinc-300 mr-2">·</span>Prioritäts-Support</li>
-          </ul>
-          <a href="{{ route('register') }}"
-             class="mt-8 rounded-lg border border-zinc-200 hover:border-zinc-400 text-zinc-500 hover:text-zinc-900 py-2.5 text-sm text-center transition-colors block w-full">
-            Jetzt starten
-          </a>
-        </div>
-
-      </div>
-      <p class="text-center text-xs text-zinc-400 mt-8">
-        ✓ 14 Tage Trial &nbsp;·&nbsp; ✓ Keine Kreditkarte &nbsp;·&nbsp; ✓ Monatlich kündbar
-      </p>
-    </div>
-  </div>
 
   {{-- ── 10. CLOSING CTA ── --}}
-  <div class="border-t border-zinc-100 py-20 text-center">
+  <div class="py-20 text-center" style="background:#f4f4f5;">
     <div class="max-w-xl mx-auto px-6">
-      <h2 class="text-3xl font-bold text-zinc-900 tracking-tight leading-tight mb-4">
-        Starte heute mit 10 kostenlosen Scans.
+      <h2 class="text-3xl font-bold tracking-tight leading-tight mb-4" style="color:#09090b;">
+        PageScan ist aktuell kostenlos.
       </h2>
-      <p class="text-sm text-zinc-500 mb-8 leading-relaxed">
-        Keine Kreditkarte nötig. Registriere dich in 30 Sekunden und sieh sofort welche Websites in deiner Zielbranche Verbesserungspotenzial haben.
+      <p class="text-sm mb-8 leading-relaxed" style="color:#71717a;">
+        Registriere dich jetzt und erhalte kostenlosen Zugang. Keine Kreditkarte, keine Verpflichtung.
       </p>
       <a href="{{ route('register') }}"
-         class="inline-block bg-zinc-900 hover:bg-zinc-700 text-white text-sm font-medium px-8 py-3.5 rounded-lg transition-colors">
+         class="inline-block text-sm font-medium px-8 py-3.5 rounded-lg transition-colors"
+         style="background:#18181b; color:#ffffff;">
         Kostenlos registrieren →
       </a>
-      <p class="mt-4 text-xs text-zinc-400">
+      <p class="mt-4 text-xs" style="color:#a1a1aa;">
         Bereits registriert?
-        <a href="{{ route('login') }}" class="text-zinc-500 hover:text-zinc-700 underline underline-offset-2">
+        <a href="{{ route('login') }}" class="underline underline-offset-2" style="color:#71717a;">
           Hier anmelden
         </a>
       </p>
@@ -572,22 +902,46 @@
   </div>
 
   {{-- ── 11. FOOTER ── --}}
-  <footer class="border-t border-zinc-200 py-8">
-    <div class="max-w-6xl mx-auto px-6 flex justify-between items-center flex-wrap gap-4">
-      <span class="text-xs text-zinc-400">© {{ date('Y') }} PageScan</span>
-      <nav class="flex gap-5">
-        <a href="{{ route('login') }}"       class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Anmelden</a>
-        <a href="{{ route('register') }}"    class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Registrieren</a>
-        <a href="{{ route('impressum') }}"   class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Impressum</a>
-        <a href="{{ route('datenschutz') }}" class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors">Datenschutz</a>
-      </nav>
+  <footer style="border-top:1px solid #e4e4e7; background:#f9fafb; padding:48px 24px 32px;">
+    <div style="max-width:1152px; margin:0 auto;">
+      <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:48px; margin-bottom:48px;">
+
+        <div>
+          <div style="font-weight:600; font-size:15px; color:#09090b; margin-bottom:8px;">PageScan</div>
+          <p style="font-size:13px; color:#71717a; line-height:1.7; max-width:280px;">
+            Finde Unternehmen mit schlechten Websites. Scanne live, speichere Leads, gewinne Kunden.
+          </p>
+        </div>
+
+        <div>
+          <div style="font-size:11px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:14px;">Produkt</div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a href="#schritte" style="font-size:13px; color:#71717a; text-decoration:none;">So funktioniert's</a>
+            <a href="{{ route('register') }}" style="font-size:13px; color:#71717a; text-decoration:none;">Kostenlos testen</a>
+            <a href="{{ route('login') }}"    style="font-size:13px; color:#71717a; text-decoration:none;">Anmelden</a>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:11px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:14px;">Rechtliches</div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a href="{{ route('impressum') }}"   style="font-size:13px; color:#71717a; text-decoration:none;">Impressum</a>
+            <a href="{{ route('datenschutz') }}" style="font-size:13px; color:#71717a; text-decoration:none;">Datenschutz</a>
+          </div>
+        </div>
+
+      </div>
+      <div style="border-top:1px solid #e4e4e7; padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <span style="font-size:12px; color:#a1a1aa;">© {{ date('Y') }} PageScan. Alle Rechte vorbehalten.</span>
+        <span style="font-size:12px; color:#a1a1aa;">Made in Germany</span>
+      </div>
     </div>
   </footer>
 
   <script>
     /* ── HERO LOAD ANIMATION ─────────────────────────────────── */
     const heroItems  = document.querySelectorAll('.hero-item');
-    const heroDelays = [0, 80, 180, 280];
+    const heroDelays = [0];
     heroItems.forEach((el, i) => {
       const delay = heroDelays[i] ?? 280;
       el.style.transition = `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`;

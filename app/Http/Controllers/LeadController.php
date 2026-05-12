@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Lead;
+use App\Services\PdfReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -42,7 +43,6 @@ class LeadController extends Controller
         // Screenshot speichern (nur wenn noch keiner vorhanden)
         if (!$company->screenshot_path) {
             try {
-                // Bevorzugt: Google Places Foto
                 $imgUrl = $request->filled('photo_url')
                     ? $request->photo_url
                     : ($request->filled('website_url')
@@ -174,6 +174,21 @@ class LeadController extends Controller
                         'cms'                => $scan->cms,
                         'page_title'         => $scan->page_title,
                         'meta_description'   => $scan->meta_description,
+                        // Advanced fields
+                        'risk_badge'              => $scan->risk_badge,
+                        'google_fonts_source'     => $scan->google_fonts_source,
+                        'cookie_banner_tool'      => $scan->cookie_banner_tool,
+                        'cookie_banner_status'    => $scan->cookie_banner_status,
+                        'impressum_location'      => $scan->impressum_location,
+                        'datenschutz_location'    => $scan->datenschutz_location,
+                        'security_headers_score'  => $scan->security_headers_score,
+                        'security_headers_detail' => $scan->security_headers_detail,
+                        'outdated_tech'           => $scan->outdated_tech,
+                        'ttfb_score'              => $scan->ttfb_score,
+                        'lcp_score'               => $scan->lcp_score,
+                        'cls_score'               => $scan->cls_score,
+                        'has_dsgvo_issues'        => $scan->has_dsgvo_issues,
+                        'has_performance_issues'  => $scan->has_performance_issues,
                     ] : null,
                     'contact_attempts' => $lead->contactAttempts->map(fn($a) => [
                         'id'             => $a->id,
@@ -235,16 +250,86 @@ class LeadController extends Controller
         ]);
     }
 
+    // ────────────────────────────────────────────────────────────────────────────
+    //  PDF Export
+    // ────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Download a single lead as PDF.
+     * Route: GET /leads/{lead}/pdf
+     */
+    public function exportPdf(Lead $lead, PdfReportService $pdfService)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $lead->user_id !== $user->id) {
+            abort(403, 'Nicht erlaubt');
+        }
+
+        $pdf      = $pdfService->generateForLead($lead);
+        $filename = 'Lead_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $lead->company?->name ?? $lead->id) . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Download multiple leads as ZIP of PDFs.
+     * Route: POST /leads/export-pdf-batch
+     * Body: { ids: [1,2,3] } — leave empty to export all user leads
+     */
+    public function exportPdfBatch(Request $request, PdfReportService $pdfService)
+    {
+        $request->validate([
+            'ids'   => 'nullable|array',
+            'ids.*' => 'integer|exists:leads,id',
+        ]);
+
+        $user  = auth()->user();
+        $query = Lead::with(['company', 'scan', 'contactAttempts']);
+
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        if ($request->filled('ids')) {
+            $query->whereIn('id', $request->ids);
+        }
+
+        $leads = $query->latest()->get();
+
+        if ($leads->isEmpty()) {
+            abort(404, 'Keine Leads gefunden');
+        }
+
+        $zipPath = $pdfService->generateZipForLeads($leads);
+
+        return response()->download($zipPath, 'leads_' . now()->format('Y-m-d') . '.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(true);
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    //  CSV Export (extended)
+    // ────────────────────────────────────────────────────────────────────────────
+
     public function exportCsv(Request $request)
     {
-        $query = Lead::with(['company', 'scan'])
-            ->where('user_id', auth()->id());
+        $user  = auth()->user();
+        $query = Lead::with(['company', 'scan']);
+
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
         if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
+        }
+        // Support filtering by specific IDs for batch CSV
+        if ($request->filled('ids')) {
+            $ids = array_map('intval', explode(',', $request->ids));
+            $query->whereIn('id', $ids);
         }
 
         $leads = $query->latest()->get();
@@ -256,21 +341,45 @@ class LeadController extends Controller
 
         return response()->stream(function () use ($leads) {
             $handle = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel compatibility
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($handle, ['ID', 'Firmenname', 'Stadt', 'Branche', 'Website', 'Score', 'SSL', 'Mobil', 'CMS', 'Lead-Status', 'Priorität', 'Notizen', 'Erstellt am'], ';');
+
+            fputcsv($handle, [
+                'ID', 'Firmenname', 'Stadt', 'Branche', 'Website', 'Telefon',
+                'Score', 'Risiko', 'SSL', 'Mobil', 'CMS',
+                'Impressum', 'Datenschutz', 'Cookie-Banner', 'Cookie-Tool',
+                'Google Fonts', 'Sicherheits-Score',
+                'TTFB', 'LCP', 'CLS',
+                'Veraltete Technologien',
+                'Lead-Status', 'Priorität', 'Notizen', 'Erstellt am',
+            ], ';');
 
             foreach ($leads as $lead) {
-                $scan = $lead->scan;
+                $scan    = $lead->scan;
+                $company = $lead->company;
+
                 fputcsv($handle, [
                     $lead->id,
-                    $lead->company->name ?? '',
-                    $lead->company->stadt ?? '',
-                    $lead->company->branche ?? '',
-                    $lead->company->website_url ?? '',
+                    $company->name ?? '',
+                    $company->stadt ?? '',
+                    $company->branche ?? '',
+                    $company->website_url ?? '',
+                    $company->telefon ?? '',
                     $scan?->score ?? '',
+                    $scan?->risk_badge ?? '',
                     $scan ? ($scan->has_ssl ? 'Ja' : 'Nein') : '',
                     $scan ? ($scan->is_mobile ? 'Ja' : 'Nein') : '',
                     $scan?->cms ?? '',
+                    $scan?->impressum_location ?? '',
+                    $scan?->datenschutz_location ?? '',
+                    $scan?->cookie_banner_status ?? '',
+                    $scan?->cookie_banner_tool ?? '',
+                    $scan?->google_fonts_source ?? '',
+                    $scan?->security_headers_score ?? '',
+                    $scan?->ttfb_score ?? '',
+                    $scan?->lcp_score ?? '',
+                    $scan?->cls_score ?? '',
+                    $scan?->outdated_tech ? implode(', ', $scan->outdated_tech) : '',
                     $lead->status,
                     $lead->priority,
                     $lead->notes ?? '',

@@ -29,9 +29,21 @@
         <option>Squarespace</option>
         <option>Webflow</option>
       </select>
+
+      <!-- Neue Schnellfilter -->
+      <select v-model="filterQuick" class="input" style="max-width:200px;" @change="applyFilter">
+        <option value="">Alle Leads</option>
+        <option value="critical">Kritische Fehler</option>
+        <option value="high_potential">Hohes Potenzial (Score ≥ 70)</option>
+        <option value="no_website">Keine Website</option>
+        <option value="dsgvo">DSGVO-Probleme</option>
+        <option value="performance">Performance-Probleme</option>
+      </select>
+
       <span style="font-size:13px; color:var(--text-3); margin-left:4px;">
         {{ filtered.length }} Lead{{ filtered.length !== 1 ? 's' : '' }}
       </span>
+
       <!-- View-Toggle -->
       <div style="display:flex; border:1px solid var(--border-md); border-radius:7px; overflow:hidden; margin-left:auto;">
         <button
@@ -51,6 +63,33 @@
           <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><rect x="2" y="3" width="4" height="14" rx="1"/><rect x="8" y="3" width="4" height="10" rx="1"/><rect x="14" y="3" width="4" height="12" rx="1"/></svg>
         </button>
       </div>
+    </div>
+
+    <!-- Bulk-Aktionsleiste (erscheint wenn Leads selektiert) -->
+    <div v-if="selectedLeads.length > 0" class="bulk-bar">
+      <span style="font-size:13px; font-weight:500;">{{ selectedLeads.length }} Lead{{ selectedLeads.length !== 1 ? 's' : '' }} ausgewählt</span>
+      <div style="display:flex; gap:8px; margin-left:auto; flex-wrap:wrap;">
+        <button class="btn btn-sm" @click="bulkExportCsv">CSV exportieren</button>
+        <button class="btn btn-sm" @click="bulkExportPdf" :disabled="bulkExporting">
+          {{ bulkExporting ? 'Exportiert...' : 'PDF-ZIP exportieren' }}
+        </button>
+        <button class="btn btn-sm btn-danger" @click="bulkDelete">Löschen</button>
+        <button class="btn btn-sm" style="background:none; border:none; color:var(--text-3);" @click="clearSelection">Abwählen</button>
+      </div>
+    </div>
+
+    <!-- Alle auswählen (bei gefilterten Leads) -->
+    <div v-if="viewMode === 'list' && filtered.length > 0" style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:4px 0;">
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--text-3); user-select:none;">
+        <input
+          type="checkbox"
+          :checked="allSelected"
+          :indeterminate.prop="someSelected && !allSelected"
+          @change="toggleSelectAll"
+          style="cursor:pointer;"
+        >
+        Alle auswählen ({{ filtered.length }})
+      </label>
     </div>
 
     <!-- Lade-Zustand -->
@@ -75,10 +114,20 @@
 
       <!-- ═══════════════════════════ LISTEN-ANSICHT ═══════════════════════════ -->
       <div v-if="viewMode === 'list'" style="display:flex; flex-direction:column; gap:16px;">
-        <div v-for="lead in filtered" :key="lead.id" class="card lead-card">
+        <div v-for="lead in filtered" :key="lead.id" class="card lead-card" :class="{ 'lead-card-selected': isSelected(lead.id) }">
 
           <!-- Bild + Basis-Info -->
           <div class="lead-body">
+
+            <!-- Checkbox-Spalte -->
+            <div class="select-col" @click.stop>
+              <input
+                type="checkbox"
+                :checked="isSelected(lead.id)"
+                @change="toggleSelect(lead.id)"
+                style="cursor:pointer; width:16px; height:16px;"
+              >
+            </div>
 
             <!-- Bild -->
             <div class="screenshot-col" :class="{ 'screenshot-empty': !imageUrl(lead) }">
@@ -97,7 +146,13 @@
             <div class="lead-content">
               <div class="lead-actions">
                 <div style="flex:1; min-width:0;">
-                  <div style="font-weight:600; font-size:15px;">{{ lead.company.name }}</div>
+                  <div style="font-weight:600; font-size:15px; display:flex; align-items:center; gap:8px;">
+                    {{ lead.company.name }}
+                    <!-- Risk-Badge -->
+                    <span v-if="lead.scan?.risk_badge" :class="['risk-badge', 'risk-' + lead.scan.risk_badge]">
+                      {{ riskLabel(lead.scan.risk_badge) }}
+                    </span>
+                  </div>
                   <div style="font-size:12px; color:var(--text-3); margin-top:2px;">
                     {{ lead.company.branche }} · {{ lead.company.stadt }}
                     <span v-if="lead.company.rating"> · ⭐ {{ lead.company.rating.toFixed(1) }} ({{ lead.company.bewertungen }})</span>
@@ -135,6 +190,7 @@
                     <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
                   </select>
                   <a :href="`/companies/${lead.company.id}`" class="btn btn-sm">Details</a>
+                  <a :href="`/leads/${lead.id}/pdf`" class="btn btn-sm" target="_blank" title="PDF herunterladen">PDF</a>
                   <button class="btn btn-sm btn-danger" @click="deleteLead(lead)">Löschen</button>
                 </div>
               </div>
@@ -151,7 +207,22 @@
                     <span class="check-chip" :class="lead.scan.has_tracking ? 'ok' : 'fail'">{{ lead.scan.has_tracking ? '✓' : '✗' }} Tracking</span>
                     <span class="check-chip" :class="lead.scan.has_favicon ? 'ok' : 'fail'">{{ lead.scan.has_favicon ? '✓' : '✗' }} Favicon</span>
                     <span v-if="lead.scan.has_og_tags !== null" class="check-chip" :class="lead.scan.has_og_tags ? 'ok' : 'fail'">{{ lead.scan.has_og_tags ? '✓' : '✗' }} OG-Tags</span>
-                    <span v-if="lead.scan.has_cookie_banner !== null" class="check-chip" :class="lead.scan.has_cookie_banner ? 'ok' : 'fail'">{{ lead.scan.has_cookie_banner ? '✓' : '✗' }} Cookie-Banner</span>
+                    <span v-if="lead.scan.cookie_banner_status !== null" class="check-chip" :class="lead.scan.cookie_banner_status === 'found' ? 'ok' : 'fail'">
+                      {{ lead.scan.cookie_banner_status === 'found' ? '✓' : '✗' }} Cookie
+                      <span v-if="lead.scan.cookie_banner_tool"> ({{ lead.scan.cookie_banner_tool }})</span>
+                    </span>
+                  </div>
+                  <!-- Performance chips (new) -->
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <span v-if="lead.scan.ttfb_score" class="check-chip" :class="lead.scan.ttfb_score === 'gut' ? 'ok' : lead.scan.ttfb_score === 'mittel' ? 'warn' : 'fail'">
+                      TTFB: {{ lead.scan.ttfb_score }}
+                    </span>
+                    <span v-if="lead.scan.lcp_score" class="check-chip" :class="lead.scan.lcp_score === 'gut' ? 'ok' : lead.scan.lcp_score === 'mittel' ? 'warn' : 'fail'">
+                      LCP: {{ lead.scan.lcp_score }}
+                    </span>
+                    <span v-if="lead.scan.security_headers_score !== null" class="check-chip" :class="lead.scan.security_headers_score >= 3 ? 'ok' : lead.scan.security_headers_score >= 2 ? 'warn' : 'fail'">
+                      Sicherheit: {{ lead.scan.security_headers_score }}/4
+                    </span>
                   </div>
                   <div style="display:flex; gap:12px; font-size:11px; color:var(--text-3); flex-wrap:wrap; align-items:center;">
                     <span v-if="lead.scan.response_ms">{{ lead.scan.response_ms }}ms</span>
@@ -159,6 +230,11 @@
                     <span v-if="lead.scan.cms">{{ lead.scan.cms }}</span>
                     <span v-if="lead.scan.http_status">HTTP {{ lead.scan.http_status }}</span>
                   </div>
+                </div>
+                <!-- Outdated tech warning -->
+                <div v-if="lead.scan.outdated_tech && lead.scan.outdated_tech.length > 0" style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+                  <span style="font-size:10px; color:var(--text-3); align-self:center;">Veraltet:</span>
+                  <span v-for="tech in lead.scan.outdated_tech" :key="tech" class="check-chip fail" style="font-size:10px;">{{ tech }}</span>
                 </div>
               </div>
               <div v-else-if="lead.company.has_website" style="margin-top:12px; font-size:12px; color:var(--text-3);">Noch kein Scan vorhanden</div>
@@ -247,7 +323,12 @@
               @dragend="onDragEnd"
               @click="openModal(lead)"
             >
-              <div style="font-weight:600; font-size:13px; margin-bottom:4px;">{{ lead.company.name }}</div>
+              <div style="font-weight:600; font-size:13px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                {{ lead.company.name }}
+                <span v-if="lead.scan?.risk_badge" :class="['risk-badge', 'risk-badge-sm', 'risk-' + lead.scan.risk_badge]">
+                  {{ riskLabel(lead.scan.risk_badge) }}
+                </span>
+              </div>
               <div style="font-size:11px; color:var(--text-3); margin-bottom:8px;">{{ lead.company.stadt }}</div>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <span v-if="lead.scan" :class="['score-pill', scoreClass(lead.scan.score)]" style="font-size:11px; padding:2px 7px;">
@@ -270,14 +351,19 @@
       <div class="modal-box" @keydown.esc="closeModal">
         <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px;">
           <div>
-            <div style="font-weight:700; font-size:16px;">{{ modalLead.company.name }}</div>
+            <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:8px;">
+              {{ modalLead.company.name }}
+              <span v-if="modalLead.scan?.risk_badge" :class="['risk-badge', 'risk-' + modalLead.scan.risk_badge]">
+                {{ riskLabel(modalLead.scan.risk_badge) }}
+              </span>
+            </div>
             <div style="font-size:12px; color:var(--text-3);">{{ modalLead.company.branche }} · {{ modalLead.company.stadt }}</div>
           </div>
           <button style="background:none; border:none; cursor:pointer; font-size:20px; color:var(--text-3); line-height:1;" @click="closeModal">✕</button>
         </div>
 
         <!-- Status + Priorität -->
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
           <select :value="modalLead.status" class="input" style="width:150px; font-size:13px;" @change="updateField(modalLead, 'status', $event.target.value)">
             <option value="neu">Neu</option>
             <option value="kontaktiert">Kontaktiert</option>
@@ -291,6 +377,7 @@
             <option value="niedrig">Niedrig</option>
           </select>
           <a :href="`/companies/${modalLead.company.id}`" class="btn btn-sm" target="_blank">Details</a>
+          <a :href="`/leads/${modalLead.id}/pdf`" class="btn btn-sm" target="_blank">PDF</a>
         </div>
 
         <!-- Scan-Daten -->
@@ -306,6 +393,15 @@
             <span class="check-chip" :class="modalLead.scan.has_impressum ? 'ok' : 'fail'">{{ modalLead.scan.has_impressum ? '✓' : '✗' }} Impressum</span>
             <span class="check-chip" :class="modalLead.scan.has_contact ? 'ok' : 'fail'">{{ modalLead.scan.has_contact ? '✓' : '✗' }} Kontakt</span>
             <span class="check-chip" :class="modalLead.scan.has_favicon ? 'ok' : 'fail'">{{ modalLead.scan.has_favicon ? '✓' : '✗' }} Favicon</span>
+            <span v-if="modalLead.scan.cookie_banner_status" class="check-chip" :class="modalLead.scan.cookie_banner_status === 'found' ? 'ok' : 'fail'">
+              {{ modalLead.scan.cookie_banner_status === 'found' ? '✓' : '✗' }} Cookie
+            </span>
+          </div>
+          <!-- Performance in modal -->
+          <div v-if="modalLead.scan.ttfb_score || modalLead.scan.lcp_score || modalLead.scan.security_headers_score !== null" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">
+            <span v-if="modalLead.scan.ttfb_score" class="check-chip" :class="modalLead.scan.ttfb_score === 'gut' ? 'ok' : modalLead.scan.ttfb_score === 'mittel' ? 'warn' : 'fail'">TTFB: {{ modalLead.scan.ttfb_score }}</span>
+            <span v-if="modalLead.scan.lcp_score" class="check-chip" :class="modalLead.scan.lcp_score === 'gut' ? 'ok' : modalLead.scan.lcp_score === 'mittel' ? 'warn' : 'fail'">LCP: {{ modalLead.scan.lcp_score }}</span>
+            <span v-if="modalLead.scan.security_headers_score !== null" class="check-chip" :class="modalLead.scan.security_headers_score >= 3 ? 'ok' : modalLead.scan.security_headers_score >= 2 ? 'warn' : 'fail'">Sicherheit: {{ modalLead.scan.security_headers_score }}/4</span>
           </div>
         </div>
 
@@ -353,16 +449,20 @@ export default {
       leads:          [],
       users:          [],
       loading:        true,
-      filterStatus:   params.get('status')   ?? '',
-      filterPriority: params.get('priority') ?? '',
+      filterStatus:   params.get('status')    ?? '',
+      filterPriority: params.get('priority')  ?? '',
       filterMinScore: params.get('min_score') ?? '',
       filterMaxScore: params.get('max_score') ?? '',
-      filterCms:      params.get('cms') ?? '',
+      filterCms:      params.get('cms')       ?? '',
+      filterQuick:    params.get('quick')     ?? '',
       toast:          null,
       viewMode:       localStorage.getItem('leads_view') ?? 'list',
       draggedLeadId:  null,
       dragOverColumn: null,
       modalLead:      null,
+      // Bulk selection
+      selectedLeads:  [],
+      bulkExporting:  false,
       kanbanColumns: [
         { status: 'neu',         label: 'Neu',         color: '#71717a' },
         { status: 'kontaktiert', label: 'Kontaktiert', color: '#3b82f6' },
@@ -375,13 +475,44 @@ export default {
   computed: {
     filtered() {
       return this.leads.filter(l => {
+        // Basic filters
         if (this.filterStatus   && l.status   !== this.filterStatus)   return false
         if (this.filterPriority && l.priority !== this.filterPriority) return false
         if (this.filterMinScore !== '' && (l.scan?.score ?? -1) < Number(this.filterMinScore)) return false
         if (this.filterMaxScore !== '' && (l.scan?.score ?? 101) > Number(this.filterMaxScore)) return false
         if (this.filterCms && l.scan?.cms !== this.filterCms) return false
+
+        // Quick-filters
+        if (this.filterQuick) {
+          switch (this.filterQuick) {
+            case 'critical':
+              if (l.scan?.risk_badge !== 'critical') return false
+              break
+            case 'high_potential':
+              if ((l.scan?.score ?? 0) < 70) return false
+              break
+            case 'no_website':
+              if (l.company.has_website !== false) return false
+              break
+            case 'dsgvo':
+              if (!l.scan?.has_dsgvo_issues) return false
+              break
+            case 'performance':
+              if (!l.scan?.has_performance_issues) return false
+              break
+          }
+        }
+
         return true
       })
+    },
+
+    allSelected() {
+      return this.filtered.length > 0 && this.filtered.every(l => this.selectedLeads.includes(l.id))
+    },
+
+    someSelected() {
+      return this.filtered.some(l => this.selectedLeads.includes(l.id))
     },
   },
   async mounted() {
@@ -461,6 +592,7 @@ export default {
       if (this.filterMinScore) params.set('min_score', this.filterMinScore)
       if (this.filterMaxScore) params.set('max_score', this.filterMaxScore)
       if (this.filterCms)      params.set('cms',       this.filterCms)
+      if (this.filterQuick)    params.set('quick',     this.filterQuick)
       const qs = params.toString()
       history.replaceState(null, '', qs ? '?' + qs : window.location.pathname)
     },
@@ -494,11 +626,98 @@ export default {
       return { hoch: 'prio-hoch', mittel: 'prio-mittel', niedrig: 'prio-niedrig' }[priority] ?? 'prio-niedrig'
     },
 
+    riskLabel(badge) {
+      return { critical: 'Kritisch', warning: 'Warnung', ok: 'OK' }[badge] ?? badge
+    },
+
+    // ── Selection ──────────────────────────────────────────────────────────────
+
+    isSelected(leadId) {
+      return this.selectedLeads.includes(leadId)
+    },
+
+    toggleSelect(leadId) {
+      if (this.isSelected(leadId)) {
+        this.selectedLeads = this.selectedLeads.filter(id => id !== leadId)
+      } else {
+        this.selectedLeads = [...this.selectedLeads, leadId]
+      }
+    },
+
+    toggleSelectAll() {
+      if (this.allSelected) {
+        // Deselect all currently filtered leads
+        const filteredIds = this.filtered.map(l => l.id)
+        this.selectedLeads = this.selectedLeads.filter(id => !filteredIds.includes(id))
+      } else {
+        // Select all currently filtered leads (merge with existing selection)
+        const filteredIds = this.filtered.map(l => l.id)
+        const merged      = new Set([...this.selectedLeads, ...filteredIds])
+        this.selectedLeads = [...merged]
+      }
+    },
+
+    clearSelection() {
+      this.selectedLeads = []
+    },
+
+    // ── Bulk actions ───────────────────────────────────────────────────────────
+
+    bulkExportCsv() {
+      const ids = this.selectedLeads.join(',')
+      window.location.href = `/leads/export?ids=${ids}`
+    },
+
+    async bulkExportPdf() {
+      if (this.bulkExporting) return
+      this.bulkExporting = true
+      try {
+        const response = await axios.post('/leads/export-pdf-batch', { ids: this.selectedLeads }, {
+          responseType: 'blob',
+        })
+        // Trigger browser download
+        const blob    = new Blob([response.data], { type: 'application/zip' })
+        const url     = URL.createObjectURL(blob)
+        const a       = document.createElement('a')
+        a.href        = url
+        a.download    = `leads_${new Date().toISOString().slice(0, 10)}.zip`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        this.showToast('PDF-ZIP erstellt')
+      } catch {
+        this.showToast('Fehler beim PDF-Export')
+      } finally {
+        this.bulkExporting = false
+      }
+    },
+
+    async bulkDelete() {
+      if (!confirm(`${this.selectedLeads.length} Lead(s) wirklich löschen?`)) return
+      const ids = [...this.selectedLeads]
+      let successCount = 0
+      for (const id of ids) {
+        try {
+          await axios.delete(`/api/leads/${id}`)
+          this.leads        = this.leads.filter(l => l.id !== id)
+          this.selectedLeads = this.selectedLeads.filter(sid => sid !== id)
+          successCount++
+        } catch {
+          // continue with remaining
+        }
+      }
+      this.showToast(`${successCount} Lead(s) gelöscht`)
+    },
+
+    // ── CRUD ───────────────────────────────────────────────────────────────────
+
     async deleteLead(lead) {
       if (!confirm(`Lead "${lead.company.name}" wirklich löschen?`)) return
       try {
         await axios.delete(`/api/leads/${lead.id}`)
-        this.leads = this.leads.filter(l => l.id !== lead.id)
+        this.leads         = this.leads.filter(l => l.id !== lead.id)
+        this.selectedLeads = this.selectedLeads.filter(id => id !== lead.id)
         this.showToast('Lead gelöscht')
       } catch {
         this.showToast('Fehler beim Löschen')
@@ -582,6 +801,20 @@ export default {
 
 <style scoped>
 .lead-card { overflow: hidden; }
+.lead-card-selected { outline: 2px solid #6366f1; outline-offset: -2px; }
+
+.select-col {
+  width: 40px;
+  min-height: 150px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 20px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
 .screenshot-col { width:200px; min-height:150px; flex-shrink:0; overflow:hidden; border-right:1px solid var(--border); display:flex; align-items:center; justify-content:center; background:var(--bg); }
 .screenshot-img { width:100%; height:150px; object-fit:cover; object-position:top; display:block; }
 .screenshot-empty { flex-direction:column; gap:4px; }
@@ -589,6 +822,32 @@ export default {
 .lead-content { flex:1; padding:20px; min-width:0; }
 .lead-actions { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .lead-selects { display:flex; gap:8px; flex-wrap:wrap; flex-shrink:0; }
+
+/* Risk badge */
+.risk-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.risk-badge-sm { font-size: 9px; padding: 1px 6px; }
+.risk-critical { background: #fef2f2; color: #dc2626; }
+.risk-warning  { background: #fefce8; color: #ca8a04; }
+.risk-ok       { background: #f0fdf4; color: #16a34a; }
+
+/* Bulk bar */
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius, 8px);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
 
 /* Kanban */
 .kanban-board { display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; align-items:flex-start; }
@@ -618,6 +877,7 @@ export default {
 .check-chip { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
 .check-chip.ok   { background:#f0fdf4; color:#16a34a; }
 .check-chip.fail { background:#fef2f2; color:#dc2626; }
+.check-chip.warn { background:#fefce8; color:#ca8a04; }
 
 .spinner { width:20px; height:20px; border:2px solid var(--border-md); border-top-color:var(--text-1); border-radius:50%; animation:spin 0.7s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -630,6 +890,7 @@ export default {
 
 @media (max-width:640px) {
   .lead-body { flex-direction:column; }
+  .select-col { width:100%; min-height:unset; border-right:none; border-bottom:1px solid var(--border); flex-direction:row; padding:10px 14px; align-items:center; justify-content:flex-start; }
   .screenshot-col { width:100%; height:180px; min-height:unset; border-right:none; border-bottom:1px solid var(--border); }
   .screenshot-img { width:100%; height:180px; }
   .lead-content { padding:14px; }
